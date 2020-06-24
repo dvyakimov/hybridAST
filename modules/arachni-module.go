@@ -1,4 +1,4 @@
-package main
+package modules
 
 import (
 	"fmt"
@@ -12,11 +12,11 @@ import (
 	"time"
 )
 
-func StartScanArachni () string {
+func StartScanArachni(host string) string {
 	client := resty.New()
 	respPostStartScan, err := client.R().
 		SetBody(map[string]string{
-			"url": "http://192.168.168.2:8080",
+			"url": host,
 		}).
 		SetHeader("Accept", "application/json").
 		Post("http://192.168.168.3:7331/scans")
@@ -24,7 +24,6 @@ func StartScanArachni () string {
 	if err != nil {
 		log.Fatalf("ERROR:", err)
 	}
-
 
 	lastId := gjson.Get(string(respPostStartScan.Body()), "id")
 
@@ -39,8 +38,8 @@ func StartScanArachni () string {
 		lastStatus := gjson.Get(string(respGetStatus.Body()), "status")
 		lastIssues := gjson.Get(string(respGetStatus.Body()), "issues")
 
-		fmt.Println(lastStatus,lastMessage,lastIssues)
-		if  strings.Compare(lastStatus.String(), "done") == 0 {
+		fmt.Println(lastStatus, lastMessage, lastIssues)
+		if strings.Compare(lastStatus.String(), "done") == 0 {
 			break
 		}
 		time.Sleep(2 * time.Second)
@@ -55,10 +54,7 @@ func StartScanArachni () string {
 	return respGetReport.String()
 }
 
-
-
-
-func main() {
+func StartAnalyzeArachni() {
 
 	db, err := gorm.Open("mysql", "root:root@/dbreport?charset=utf8&parseTime=True&loc=Local")
 	if err != nil {
@@ -67,42 +63,42 @@ func main() {
 	defer db.Close()
 
 	// Migrate the schema
-	db.AutoMigrate(&entrypoint.Entrypoint{},&entrypoint.Params{},&entrypoint.SourceData{})
-	db.Model(&entrypoint.Params{}).AddForeignKey("params_id","entrypoints(id)","CASCADE","CASCADE")
-	db.Model(&entrypoint.SourceData{}).AddForeignKey("source_name_id","entrypoints(id)","CASCADE","CASCADE")
+	db.AutoMigrate(&entrypoint.Entrypoint{}, &entrypoint.Params{}, &entrypoint.SourceData{})
+	db.Model(&entrypoint.Params{}).AddForeignKey("params_id", "entrypoints(id)", "CASCADE", "CASCADE")
+	db.Model(&entrypoint.SourceData{}).AddForeignKey("source_name_id", "entrypoints(id)", "CASCADE", "CASCADE")
 
 	var CweResult []*entrypoint.CweList
 
 	result := gjson.Get(entrypoint.ImportReport("examples-report/arachni-report-example.json"), "issues")
+	//result := gjson.Get(StartScanArachni("http://127.0.0.1:8000"), "issues")
 
 	for _, name := range result.Array() {
 
-			var BugUrl =  gjson.Get(name.String(), "page.dom.url").String()
-			entry := entrypoint.Entrypoint{
-				BugName: entrypoint.FindCWE(db, gjson.Get(name.String(), "name").String(),
-					gjson.Get(name.String(), "cwe").String()),
-				BugCWE: gjson.Get(name.String(), "cwe").String(),
-				BugHostPort: entrypoint.UrlExtractHostPort(BugUrl),
-			}
-			if entrypoint.UrlExtractPath(BugUrl) != "" {
-				entry.BugPath = entrypoint.UrlExtractPath(BugUrl)
-			} else {
-				entry.BugPath = "/"
-			}
+		var BugUrl = gjson.Get(name.String(), "page.dom.url").String()
+		entry := entrypoint.Entrypoint{
+			BugName: entrypoint.FindCWE(db, gjson.Get(name.String(), "name").String(),
+				gjson.Get(name.String(), "cwe").String()),
+			BugCWE:      gjson.Get(name.String(), "cwe").String(),
+			BugHostPort: entrypoint.UrlExtractHostPort(BugUrl),
+		}
+		if entrypoint.UrlExtractPath(BugUrl) != "" {
+			entry.BugPath = entrypoint.UrlExtractPath(BugUrl)
+		} else {
+			entry.BugPath = "/"
+		}
 
-			if len(CweResult) > 0{
-				entry.BugName = CweResult[0].Name
-			} else {
-				entry.BugName = gjson.Get(name.String(), "name").String()
-			}
+		if len(CweResult) > 0 {
+			entry.BugName = CweResult[0].Name
+		} else {
+			entry.BugName = gjson.Get(name.String(), "name").String()
+		}
 
-			source := entrypoint.SourceData{
-				Source: "Arachni",
-				Severity: gjson.Get(name.String(), "severity").String(),
-				SourceName: gjson.Get(name.String(), "name").String(),
-				SourceNameID: entry.ID,
-			}
-			entrypoint.UpdateEntry(entry,source, db, BugUrl)
+		source := entrypoint.SourceData{
+			Source:       "Arachni",
+			Severity:     gjson.Get(name.String(), "severity").String(),
+			SourceName:   gjson.Get(name.String(), "name").String(),
+			SourceNameID: entry.ID,
+		}
+		entrypoint.UpdateEntry(entry, source, db, BugUrl)
 	}
 }
-

@@ -1,4 +1,4 @@
-package main
+package modules
 
 import (
 	"flag"
@@ -13,8 +13,6 @@ import (
 	"time"
 )
 
-
-
 var target string
 
 func init() {
@@ -22,7 +20,7 @@ func init() {
 	flag.Parse()
 }
 
-func StartScanZAP () string {
+func StartScanZAP() string {
 	cfg := &zap.Config{
 		Proxy: "http://192.168.168.3:8080",
 	}
@@ -77,9 +75,7 @@ func StartScanZAP () string {
 	return string(RawReport)
 }
 
-
-func main() {
-
+func StartAnalyzeZAP() {
 	// DB
 	db, err := gorm.Open("mysql", "root:root@/dbreport?charset=utf8&parseTime=True&loc=Local")
 	if err != nil {
@@ -89,12 +85,11 @@ func main() {
 
 	// Migrate the schema
 
-	db.AutoMigrate(&entrypoint.Entrypoint{},&entrypoint.Params{},&entrypoint.SourceData{})
-	db.Model(&entrypoint.Params{}).AddForeignKey("params_id","entrypoints(id)","CASCADE","CASCADE")
-	db.Model(&entrypoint.SourceData{}).AddForeignKey("source_name_id","entrypoints(id)","CASCADE","CASCADE")
+	db.AutoMigrate(&entrypoint.Entrypoint{}, &entrypoint.Params{}, &entrypoint.SourceData{})
+	db.Model(&entrypoint.Params{}).AddForeignKey("params_id", "entrypoints(id)", "CASCADE", "CASCADE")
+	db.Model(&entrypoint.SourceData{}).AddForeignKey("source_name_id", "entrypoints(id)", "CASCADE", "CASCADE")
 
-
-	result := gjson.Get(entrypoint.ImportReport("examples-report/zap-report-example.json"), "site.0.alerts")
+	result := gjson.Get(entrypoint.ImportReport("examples-report/zap-django.json"), "site.0.alerts")
 
 	for _, name := range result.Array() {
 		resultInstances := gjson.Get(name.String(), "instances")
@@ -104,7 +99,7 @@ func main() {
 			entry := entrypoint.Entrypoint{
 				BugName: entrypoint.FindCWE(db, gjson.Get(name.String(), "name").String(),
 					gjson.Get(name.String(), "cweid").String()),
-				BugCWE: gjson.Get(name.String(), "cweid").String(),
+				BugCWE:      gjson.Get(name.String(), "cweid").String(),
 				BugHostPort: entrypoint.UrlExtractHostPort(BugUrl),
 			}
 
@@ -115,12 +110,12 @@ func main() {
 			}
 
 			source := entrypoint.SourceData{
-				Source: "OWASP ZAP",
-				Severity: gjson.Get(name.String(), "riskcode").String(),
-				SourceName: gjson.Get(name.String(), "name").String(),
+				Source:       "OWASP ZAP",
+				Severity:     gjson.Get(name.String(), "riskcode").String(),
+				SourceName:   gjson.Get(name.String(), "name").String(),
 				SourceNameID: entry.ID,
 			}
-			entrypoint.UpdateEntry(entry,source, db, BugUrl) //Убрать из аргументов BugURL
+			entrypoint.UpdateEntry(entry, source, db, BugUrl) //Убрать из аргументов BugURL
 		}
 	}
 }

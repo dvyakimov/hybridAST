@@ -15,36 +15,38 @@ import (
 
 type Entrypoint struct {
 	gorm.Model
-	BugName string
-	BugCWE string
+	BugName     string
+	BugCWE      string
 	BugHostPort string
-	BugPath string
-	Params []Params `gorm:"foreignkey:ParamsID"`
-	SourceData [] SourceData `gorm:"foreignkey:SourceNameID"`
+	BugPath     string
+	CodeLine    int
+	CodeFile    string
+	Params      []Params     `gorm:"foreignkey:ParamsID"`
+	SourceData  []SourceData `gorm:"foreignkey:SourceNameID"`
 }
 
 type Params struct {
 	gorm.Model
-	ParamName string
+	ParamName  string
 	ParamValue string
-	ParamsID uint
+	ParamsID   uint
 }
 
 type SourceData struct {
 	gorm.Model
-	Source string
-	Severity string
-	SourceName string
+	Source       string
+	Severity     string
+	SourceName   string
 	SourceNameID uint
 	//BugURL string
 }
 
 type CweList struct {
 	CweID string `gorm:"primary_key"`
-	Name string
+	Name  string
 }
 
-func ImportReport (RerortURL string) string {
+func ImportReport(RerortURL string) string {
 	jsonFile, err := os.Open(RerortURL)
 	if err != nil {
 		fmt.Println(err)
@@ -55,33 +57,31 @@ func ImportReport (RerortURL string) string {
 	return string(byteValue)
 }
 
-
-func FindCWE (db *gorm.DB, NameFromJson string, BugCWE string ) string {
+func FindCWE(db *gorm.DB, NameFromJson string, BugCWE string) string {
 	var CweResult []*CweList
-	db.Find(&CweResult,"cwe_id=?", BugCWE)
-	if len(CweResult) > 0{
+	db.Find(&CweResult, "cwe_id=?", BugCWE)
+	if len(CweResult) > 0 {
 		return CweResult[0].Name
 	} else {
 		return NameFromJson
 	}
 }
 
-
-func UpdateEntry (entry Entrypoint,source SourceData, db *gorm.DB, BugUrl string) {
+func UpdateEntry(entry Entrypoint, source SourceData, db *gorm.DB, BugUrl string) {
 	var entrypointTemp []*Entrypoint
-	db.Find(&entrypointTemp,"bug_cwe=? and bug_path=?", entry.BugCWE,entry.BugPath)
+	db.Find(&entrypointTemp, "bug_cwe=? and bug_path=?", entry.BugCWE, entry.BugPath)
 	m := UrlExtractParametr(BugUrl)
 	var checkParam = false
 	var checkSource = false
 	var checkName = false
 	var ParamSaveId uint
-	if len(entrypointTemp)>0 {
-		for entrypointTempList:=0; entrypointTempList < len(entrypointTemp); entrypointTempList++ {
+	if len(entrypointTemp) > 0 {
+		for entrypointTempList := 0; entrypointTempList < len(entrypointTemp); entrypointTempList++ {
 			var ParamTemp []*Params
-			db.Find(&ParamTemp,"params_id=?", entrypointTemp[entrypointTempList].ID)
-			if len(ParamTemp)>0 {
-				for ParamTempList:=0; ParamTempList < len(ParamTemp); ParamTempList++ {
-					if m!= nil {
+			db.Find(&ParamTemp, "params_id=?", entrypointTemp[entrypointTempList].ID)
+			if len(ParamTemp) > 0 {
+				for ParamTempList := 0; ParamTempList < len(ParamTemp); ParamTempList++ {
+					if m != nil {
 						for k, _ := range m {
 							if ParamTemp[ParamTempList].ParamName == k {
 								checkParam = true
@@ -91,7 +91,7 @@ func UpdateEntry (entry Entrypoint,source SourceData, db *gorm.DB, BugUrl string
 								checkParam = false
 							}
 						}
-					}else {
+					} else {
 						if ParamTemp[ParamTempList].ParamName == "" {
 							ParamSaveId = ParamTemp[ParamTempList].ParamsID
 							checkParam = true
@@ -102,7 +102,9 @@ func UpdateEntry (entry Entrypoint,source SourceData, db *gorm.DB, BugUrl string
 					}
 				}
 			}
-			if checkParam == true {break}
+			if checkParam == true {
+				break
+			}
 		}
 		if checkParam == false {
 			db.Create(&entry)
@@ -110,7 +112,7 @@ func UpdateEntry (entry Entrypoint,source SourceData, db *gorm.DB, BugUrl string
 			source.SourceNameID = entry.ID
 			db.Create(&source)
 		}
-	}else {
+	} else {
 		db.Create(&entry)
 		CreateParam(m, db, entry)
 		source.SourceNameID = entry.ID
@@ -133,9 +135,7 @@ func UpdateEntry (entry Entrypoint,source SourceData, db *gorm.DB, BugUrl string
 	}
 }
 
-
-
-func CheckSourceNameResult (SourceTemp []*SourceData, sourceName string) bool {
+func CheckSourceNameResult(SourceTemp []*SourceData, sourceName string) bool {
 	var checkName = false
 	for SourceTempList := 0; SourceTempList < len(SourceTemp); SourceTempList++ {
 		if sourceName == SourceTemp[SourceTempList].SourceName {
@@ -148,8 +148,7 @@ func CheckSourceNameResult (SourceTemp []*SourceData, sourceName string) bool {
 	return checkName
 }
 
-
-func CheckSourceResult (SourceTemp []*SourceData, source string) bool {
+func CheckSourceResult(SourceTemp []*SourceData, source string) bool {
 	var checkSource = false
 	for SourceTempList := 0; SourceTempList < len(SourceTemp); SourceTempList++ {
 		if SourceTemp[SourceTempList].Source == source {
@@ -162,28 +161,25 @@ func CheckSourceResult (SourceTemp []*SourceData, source string) bool {
 	return checkSource
 }
 
-
-
-func CreateParam (m url.Values,db *gorm.DB, entry Entrypoint) {
+func CreateParam(m url.Values, db *gorm.DB, entry Entrypoint) {
 	if m != nil {
 		for k, _ := range m {
 			param := Params{
 				ParamName: k,
-				ParamsID: entry.ID,
+				ParamsID:  entry.ID,
 			}
 			db.Create(&param)
 		}
 	} else {
 		param := Params{
 			ParamName: "",
-			ParamsID: entry.ID,
+			ParamsID:  entry.ID,
 		}
 		db.Create(&param)
 	}
 }
 
-
-func UrlExtractPath (urlFull string) string {
+func UrlExtractPath(urlFull string) string {
 	u, err := url.Parse(urlFull)
 	if err != nil {
 		log.Println(err)
@@ -191,7 +187,7 @@ func UrlExtractPath (urlFull string) string {
 	return u.Path
 }
 
-func UrlExtractHostPort (urlFull string) string {
+func UrlExtractHostPort(urlFull string) string {
 	u, err := url.Parse(urlFull)
 	if err != nil {
 		log.Println(err)
@@ -199,8 +195,7 @@ func UrlExtractHostPort (urlFull string) string {
 	return u.Host
 }
 
-
-func UrlExtractParametr (urlFull string) url.Values {
+func UrlExtractParametr(urlFull string) url.Values {
 	editedString := strings.Replace(urlFull, ";", "", -1)
 	u, err := url.Parse(editedString)
 	if err != nil {
