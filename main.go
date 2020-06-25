@@ -3,5 +3,8 @@ package main
 import "hybridAST/modules"
 
 func main() {
-	modules.StartAnalyzeBandit()
+	//DBStart()
+	//modules.StartAnalyzeBandit()
+	modules.StartAnalyzeArachni()
+	modules.StartAnalyzeZAP()
 }

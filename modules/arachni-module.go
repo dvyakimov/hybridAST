@@ -4,9 +4,8 @@ import (
 	"fmt"
 	"github.com/go-resty/resty/v2"
 	_ "github.com/go-sql-driver/mysql"
-	"github.com/jinzhu/gorm"
 	"github.com/tidwall/gjson"
-	"hybridAST/entrypoint"
+	"hybridAST/core"
 	"log"
 	"strings"
 	"time"
@@ -55,51 +54,32 @@ func StartScanArachni(host string) string {
 }
 
 func StartAnalyzeArachni() {
+	var db = core.InitDB()
 
-	db, err := gorm.Open("mysql", "root:root@/dbreport?charset=utf8&parseTime=True&loc=Local")
-	if err != nil {
-		fmt.Println(err)
-	}
-	defer db.Close()
-
-	// Migrate the schema
-	db.AutoMigrate(&entrypoint.Entrypoint{}, &entrypoint.Params{}, &entrypoint.SourceData{})
-	db.Model(&entrypoint.Params{}).AddForeignKey("params_id", "entrypoints(id)", "CASCADE", "CASCADE")
-	db.Model(&entrypoint.SourceData{}).AddForeignKey("source_name_id", "entrypoints(id)", "CASCADE", "CASCADE")
-
-	//var CweResult []*entrypoint.CweList
-
-	result := gjson.Get(entrypoint.ImportReport("examples-report/arachni-report-example.json"), "issues")
+	result := gjson.Get(core.ImportReport("examples-report/arachni-report-example.json"), "issues")
 	//result := gjson.Get(StartScanArachni("http://127.0.0.1:8000"), "issues")
 
 	for _, name := range result.Array() {
 
 		var BugUrl = gjson.Get(name.String(), "page.dom.url").String()
-		entry := entrypoint.Entrypoint{
-			BugName: entrypoint.FindCWE(db, gjson.Get(name.String(), "name").String(),
+		entry := core.Entrypoint{
+			BugName: core.FindCWE(db, gjson.Get(name.String(), "name").String(),
 				gjson.Get(name.String(), "cwe").String()),
 			BugCWE:      gjson.Get(name.String(), "cwe").String(),
-			BugHostPort: entrypoint.UrlExtractHostPort(BugUrl),
+			BugHostPort: core.UrlExtractHostPort(BugUrl),
 		}
-		if entrypoint.UrlExtractPath(BugUrl) != "" {
-			entry.BugPath = entrypoint.UrlExtractPath(BugUrl)
+		if core.UrlExtractPath(BugUrl) != "" {
+			entry.BugPath = core.UrlExtractPath(BugUrl)
 		} else {
 			entry.BugPath = "/"
 		}
 
-		/*
-			if len(CweResult) > 0 {
-				entry.BugName = CweResult[0].Name
-			} else {
-				entry.BugName = gjson.Get(name.String(), "name").String()
-			} */
-
-		source := entrypoint.SourceData{
+		source := core.SourceData{
 			Source:       "Arachni",
 			Severity:     gjson.Get(name.String(), "severity").String(),
 			SourceName:   gjson.Get(name.String(), "name").String(),
 			SourceNameID: entry.ID,
 		}
-		entrypoint.UpdateEntry(entry, source, db, BugUrl)
+		core.UpdateEntry(entry, source, db, BugUrl)
 	}
 }

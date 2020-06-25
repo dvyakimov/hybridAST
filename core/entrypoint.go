@@ -1,14 +1,12 @@
-package entrypoint
+package core
 
 import (
 	_ "encoding/json"
 	"fmt"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jinzhu/gorm"
-	"io/ioutil"
 	"log"
 	"net/url"
-	"os"
 	_ "sort"
 	"strings"
 )
@@ -44,17 +42,6 @@ type SourceData struct {
 type CweList struct {
 	CweID string `gorm:"primary_key"`
 	Name  string
-}
-
-func ImportReport(RerortURL string) string {
-	jsonFile, err := os.Open(RerortURL)
-	if err != nil {
-		fmt.Println(err)
-	}
-	fmt.Println("Successfully Opened users.json")
-	defer jsonFile.Close()
-	byteValue, _ := ioutil.ReadAll(jsonFile)
-	return string(byteValue)
 }
 
 func FindCWE(db *gorm.DB, NameFromJson string, BugCWE string) string {

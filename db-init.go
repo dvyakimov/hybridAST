@@ -2,12 +2,11 @@ package main
 
 import (
 	"database/sql"
-	"encoding/csv"
 	"fmt"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jinzhu/gorm"
+	"hybridAST/core"
 	"log"
-	"os"
 )
 
 var db *sql.DB
@@ -82,24 +81,6 @@ var createTable = `
 );
 `
 
-func ReadCsv(filename string) ([][]string, error) {
-
-	// Open CSV file
-	f, err := os.Open(filename)
-	if err != nil {
-		return [][]string{}, err
-	}
-	defer f.Close()
-
-	// Read File into a Variable
-	lines, err := csv.NewReader(f).ReadAll()
-	if err != nil {
-		return [][]string{}, err
-	}
-
-	return lines, nil
-}
-
 type CweList struct {
 	//ID int64 `gorm:"primary_key"`
 	CweID string `gorm:"primary_key"`
@@ -119,7 +100,7 @@ func DBStart() {
 	// Migrate the schema
 	db.AutoMigrate(&CweList{})
 
-	lines, err := ReadCsv("cwe/2000.csv")
+	lines, err := core.ReadCsv("cwe/2000.csv")
 
 	if err != nil {
 		fmt.Println(err)
