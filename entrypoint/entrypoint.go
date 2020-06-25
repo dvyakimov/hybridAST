@@ -19,8 +19,6 @@ type Entrypoint struct {
 	BugCWE      string
 	BugHostPort string
 	BugPath     string
-	CodeLine    int
-	CodeFile    string
 	Params      []Params     `gorm:"foreignkey:ParamsID"`
 	SourceData  []SourceData `gorm:"foreignkey:SourceNameID"`
 }
@@ -34,10 +32,12 @@ type Params struct {
 
 type SourceData struct {
 	gorm.Model
+	SourceNameID uint
 	Source       string
 	Severity     string
 	SourceName   string
-	SourceNameID uint
+	CodeLine     string
+	CodeFile     string
 	//BugURL string
 }
 

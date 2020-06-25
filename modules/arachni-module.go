@@ -67,7 +67,7 @@ func StartAnalyzeArachni() {
 	db.Model(&entrypoint.Params{}).AddForeignKey("params_id", "entrypoints(id)", "CASCADE", "CASCADE")
 	db.Model(&entrypoint.SourceData{}).AddForeignKey("source_name_id", "entrypoints(id)", "CASCADE", "CASCADE")
 
-	var CweResult []*entrypoint.CweList
+	//var CweResult []*entrypoint.CweList
 
 	result := gjson.Get(entrypoint.ImportReport("examples-report/arachni-report-example.json"), "issues")
 	//result := gjson.Get(StartScanArachni("http://127.0.0.1:8000"), "issues")
@@ -87,11 +87,12 @@ func StartAnalyzeArachni() {
 			entry.BugPath = "/"
 		}
 
-		if len(CweResult) > 0 {
-			entry.BugName = CweResult[0].Name
-		} else {
-			entry.BugName = gjson.Get(name.String(), "name").String()
-		}
+		/*
+			if len(CweResult) > 0 {
+				entry.BugName = CweResult[0].Name
+			} else {
+				entry.BugName = gjson.Get(name.String(), "name").String()
+			} */
 
 		source := entrypoint.SourceData{
 			Source:       "Arachni",
