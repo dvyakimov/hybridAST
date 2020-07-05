@@ -47,7 +47,8 @@ func readLines(path string) ([]string, error) {
 
 	var lines []string
 	scanner := bufio.NewScanner(file)
-	r := *regexp.MustCompile(`(?m)^\s*from\s*(.*)\simport\s+(.*)\b`) // this can also be a regex
+	r := *regexp.MustCompile(`(?m)^\s*from\s*(.*)\simport\s+(.*)\b`)
+	var rAs = *regexp.MustCompile(`(.*)\sas\s+(.*)`)
 	var arrayRoot []rootNode
 	for scanner.Scan() {
 
@@ -55,10 +56,18 @@ func readLines(path string) ([]string, error) {
 
 		for i := range res {
 			fmt.Printf("first: %s, second: %s\n", res[i][1], res[i][2])
-			var split = strings.Split(res[i][1], ".")
-			split = append(split, res[i][2])
-			var indexRoot = GraphIndexRoot(arrayRoot, split[0])
 
+			var importSplitAs = rAs.FindAllStringSubmatch(res[i][2], -1)
+
+			var split = strings.Split(res[i][1], ".")
+			fmt.Println(importSplitAs)
+			if importSplitAs != nil {
+				split = append(split, importSplitAs[0][1])
+			} else {
+				split = append(split, res[i][2])
+			}
+
+			var indexRoot = GraphIndexRoot(arrayRoot, split[0])
 			if indexRoot != -1 {
 				for j := 0; j < len(split)-1; j++ {
 					var indexNode = core.FindInGraphByIndex(&g, indexRoot, split[j+1])
@@ -68,6 +77,7 @@ func readLines(path string) ([]string, error) {
 					} else {
 						indexRoot = indexNode
 					}
+
 				}
 			} else {
 				g.AddNode(&core.Node{split[0]})
