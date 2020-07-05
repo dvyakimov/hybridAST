@@ -14,7 +14,6 @@ func ImportReport(RerortURL string) string {
 	if err != nil {
 		fmt.Println(err)
 	}
-	fmt.Println("Successfully Opened users.json")
 	defer jsonFile.Close()
 	byteValue, _ := ioutil.ReadAll(jsonFile)
 	return string(byteValue)
@@ -25,7 +24,6 @@ func InitDB() *gorm.DB {
 	if err != nil {
 		fmt.Println(err)
 	}
-
 	// Migrate the schema
 	db.AutoMigrate(&Entrypoint{}, &Params{}, &SourceData{})
 	db.Model(&Params{}).AddForeignKey("params_id", "entrypoints(id)", "CASCADE", "CASCADE")
@@ -42,7 +40,6 @@ func ExtractVaule(name gjson.Result, path string) gjson.Result {
 }
 
 func ReadCsv(filename string) ([][]string, error) {
-
 	// Open CSV file
 	f, err := os.Open(filename)
 	if err != nil {
@@ -55,6 +52,5 @@ func ReadCsv(filename string) ([][]string, error) {
 	if err != nil {
 		return [][]string{}, err
 	}
-
 	return lines, nil
 }

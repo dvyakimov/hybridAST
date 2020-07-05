@@ -41,34 +41,6 @@ func CreateDatabase() {
 	} else {
 		fmt.Println(`dbreport successfully created database..`)
 	}
-	/*
-		_,err = db.Exec(`CREATE DATABASE cweDB`)
-		if err != nil {
-			fmt.Println(err.Error())
-		} else {
-			fmt.Println(`cweDB successfully created database..`)
-		}
-
-		_,err = db.Exec(`USE cweDB`)
-		if err != nil {
-			fmt.Println(err.Error())
-		} else {
-			fmt.Println(`DB selected successfully..`)
-		} */
-	/*
-		stmt, err := db.Prepare(createTable)
-		if err != nil {
-			fmt.Println(err.Error())
-		}
-		defer stmt.Close()
-
-		_, err = stmt.Exec()
-		if err != nil {
-			fmt.Println(err.Error())
-		} else {
-			fmt.Println(`Table created successfully..`)
-		}
-	*/
 }
 
 var createTable = `
