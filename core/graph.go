@@ -8,6 +8,7 @@ import (
 type Node struct {
 	Value  string
 	IsFunc bool
+	ID     int
 }
 
 func (n *Node) String() string {
@@ -23,7 +24,6 @@ type ItemGraph struct {
 // AddNode adds a node to the graph
 func (g *ItemGraph) AddNode(n *Node) {
 	g.nodes = append(g.nodes, n)
-	//fmt.Println("ADDED:",len(g.nodes)-1) //index of last element
 }
 func LastNode(g *ItemGraph) int {
 	return len(g.nodes) - 1
