@@ -61,7 +61,7 @@ type CweList struct {
 
 func DBStart() {
 	ConnectDB()
-	//InitDB()
+	InitDB()
 
 	db, err := gorm.Open("mysql", "root:root@/dbreport?charset=utf8&parseTime=True&loc=Local")
 	if err != nil {
