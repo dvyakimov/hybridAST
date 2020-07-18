@@ -84,8 +84,8 @@ func readLines(path string) ([]string, error) {
 				for j := 0; j < len(split)-1; j++ {
 					var indexNode = core.FindInGraphByIndex(&g, indexRoot, split[j+1])
 					if indexNode == -1 {
-						g.AddNode(&core.Node{split[j+1]})
-						g.AddEdge(&core.Node{split[j]}, &core.Node{split[j+1]})
+						g.AddNode(&core.Node{split[j+1], false})
+						g.AddEdge(&core.Node{split[j], false}, &core.Node{split[j+1], false})
 					} else {
 						indexRoot = indexNode
 					}
@@ -112,29 +112,29 @@ func readLines(path string) ([]string, error) {
 						if findRes[0][l] != "" {
 							//fmt.Println(findRes[0][l])
 							var splitFindRes = strings.Split(findRes[0][l], ".")
-							g.AddNode(&core.Node{splitFindRes[0]})
-							g.AddEdge(&core.Node{split[len(split)-1]}, &core.Node{splitFindRes[0]})
+							g.AddNode(&core.Node{splitFindRes[0], true})
+							g.AddEdge(&core.Node{split[len(split)-1], false}, &core.Node{splitFindRes[0], true})
 							//fmt.Println(splitFindRes[0])
 							for m := 1; m <= len(splitFindRes)-1; m++ {
 								//fmt.Println(splitFindRes[m])
-								g.AddNode(&core.Node{splitFindRes[m]})
-								g.AddEdge(&core.Node{splitFindRes[m-1]}, &core.Node{splitFindRes[m]})
+								g.AddNode(&core.Node{splitFindRes[m], true})
+								g.AddEdge(&core.Node{splitFindRes[m-1], true}, &core.Node{splitFindRes[m], true})
 							}
 							//fmt.Println("splitFindRes[len(splitFindRes)-1]",splitFindRes[len(splitFindRes)-1])
-							//g.AddNode(&core.Node{findPath[j][1]})
-							//g.AddEdge(&core.Node{splitFindRes[len(splitFindRes)-1]}, &core.Node{findPath[j][1]})
+							g.AddNode(&core.Node{findPath[j][1], true})
+							g.AddEdge(&core.Node{splitFindRes[len(splitFindRes)-1], true}, &core.Node{findPath[j][1], true})
 						}
 					}
 
 				}
 				/*-----------*/
 			} else {
-				g.AddNode(&core.Node{split[0]})
-				arrayRoot = append(arrayRoot, rootNode{core.Node{split[0]}, core.LastNode(&g)})
+				g.AddNode(&core.Node{split[0], false})
+				arrayRoot = append(arrayRoot, rootNode{core.Node{split[0], false}, core.LastNode(&g)})
 				//fmt.Println(arrayRoot)
 				for j := 0; j < len(split)-1; j++ {
-					g.AddNode(&core.Node{split[j+1]})
-					g.AddEdge(&core.Node{split[j]}, &core.Node{split[j+1]})
+					g.AddNode(&core.Node{split[j+1], false})
+					g.AddEdge(&core.Node{split[j], false}, &core.Node{split[j+1], false})
 				}
 				/*-----------*/
 				var regexpPathString string
@@ -158,17 +158,17 @@ func readLines(path string) ([]string, error) {
 						if findRes[0][l] != "" {
 							//fmt.Println(findRes[0][l])
 							var splitFindRes = strings.Split(findRes[0][l], ".")
-							g.AddNode(&core.Node{splitFindRes[0]})
-							g.AddEdge(&core.Node{split[len(split)-1]}, &core.Node{splitFindRes[0]})
+							g.AddNode(&core.Node{splitFindRes[0], true})
+							g.AddEdge(&core.Node{split[len(split)-1], false}, &core.Node{splitFindRes[0], true})
 							//fmt.Println(splitFindRes[0])
 							for m := 1; m <= len(splitFindRes)-1; m++ {
 								//fmt.Println(splitFindRes[m])
-								g.AddNode(&core.Node{splitFindRes[m]})
-								g.AddEdge(&core.Node{splitFindRes[m-1]}, &core.Node{splitFindRes[m]})
+								g.AddNode(&core.Node{splitFindRes[m], true})
+								g.AddEdge(&core.Node{splitFindRes[m-1], true}, &core.Node{splitFindRes[m], true})
 							}
 							//fmt.Println("splitFindRes[len(splitFindRes)-1]",splitFindRes[len(splitFindRes)-1])
-							//g.AddNode(&core.Node{findPath[j][1]})
-							//g.AddEdge(&core.Node{splitFindRes[len(splitFindRes)-1]}, &core.Node{findPath[j][1]})
+							g.AddNode(&core.Node{findPath[j][1], true})
+							g.AddEdge(&core.Node{splitFindRes[len(splitFindRes)-1], true}, &core.Node{findPath[j][1], true})
 						}
 					}
 

@@ -6,8 +6,8 @@ import (
 
 // Node a single node that composes the tree
 type Node struct {
-	Value string
-	//Tag bool
+	Value  string
+	IsFunc bool
 }
 
 func (n *Node) String() string {
