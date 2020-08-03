@@ -58,25 +58,30 @@ func FindInGraphByIndex(g *ItemGraph, index int, search string) int {
 	near := g.edges[*g.nodes[index]]
 	for j := 0; j < len(near); j++ {
 		if near[j].String() == search {
-			return j
+			return near[j].ID
 		}
 	}
 	return -1
 }
 
-func (g *ItemGraph) FindInGraph(search string) string {
+// for debug
+func (g *ItemGraph) FindInGraph(search string) int {
 	for i := 0; i < len(g.nodes); i++ {
 		if g.nodes[i].String() == search {
-			return g.nodes[i].String()
+			near := g.edges[*g.nodes[i]]
+			for j := 0; j < len(near); j++ {
+				fmt.Println(near[j].String())
+			}
+			return g.nodes[i].ID
 		}
 		near := g.edges[*g.nodes[i]]
 		for j := 0; j < len(near); j++ {
 			if near[j].String() == search {
-				return g.nodes[i].String()
+				return g.nodes[i].ID
 			}
 		}
 	}
-	return "no match"
+	return -1
 }
 
 /*-------BFS----------*/

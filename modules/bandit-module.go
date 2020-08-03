@@ -12,11 +12,6 @@ import (
 	"strings"
 )
 
-type rootNode struct {
-	node  core.Node
-	index int
-}
-
 func TestidToCWE(testid string) string {
 	lines, err := core.ReadCsv("cwe/bandit-cwe.csv")
 	if err != nil {
@@ -30,23 +25,21 @@ func TestidToCWE(testid string) string {
 	return "0"
 }
 
-func GraphIndexRoot(s []rootNode, e string) int {
+func GraphIndexRoot(s []core.Node, e string) int {
 	for i := 0; i < len(s); i++ {
-		if s[i].node.String() == e {
-			return s[i].index
+		if s[i].String() == e {
+			return s[i].ID
 		}
 	}
 	return -1
 }
 
-func readLines(path string) ([]string, error) {
+func buildGraph(path string) ([]core.Node, error) {
 	file, err := os.Open(path)
 	if err != nil {
 		return nil, err
 	}
 	defer file.Close()
-
-	var lines []string
 
 	fileRead, err := ioutil.ReadFile(path)
 
@@ -60,9 +53,9 @@ func readLines(path string) ([]string, error) {
 
 	r := *regexp.MustCompile(`(?m)^\s*from\s*(.*)\simport\s+(.*)\b`)
 	rAs := *regexp.MustCompile(`(.*)\sas\s+(.*)`)
-	//var rPath regexp.Regexp
-	var arrayRoot []rootNode
-	var NodeId int
+
+	var arrayRoot []core.Node
+	var NodeId = -1
 
 	for scanner.Scan() {
 
@@ -89,12 +82,12 @@ func readLines(path string) ([]string, error) {
 						NodeId++
 						g.AddNode(&core.Node{split[j+1], false, NodeId})
 						g.AddEdge(&core.Node{split[j], false, indexRoot}, &core.Node{split[j+1], false, NodeId})
+						indexRoot = NodeId
 					} else {
 						indexRoot = indexNode
 					}
 				}
 				LastNodeId = NodeId
-				/*-----------*/
 				var regexpPathString string
 				if mapAs[split[len(split)-1]] != "" {
 					regexpPathString = `(?m)([[:word:]]*/|)\'\,\s*` + mapAs[importSplitAs[0][1]] + `\.(.+?)\,`
@@ -102,12 +95,8 @@ func readLines(path string) ([]string, error) {
 					regexpPathString = `(?m)([[:word:]]*/|)\'\,\s*` + split[len(split)-1] + `\.(.+?)\,`
 				}
 				var rPath = *regexp.MustCompile(regexpPathString)
-				//fmt.Println(rPath.String())
 				var findPath = rPath.FindAllStringSubmatch(content, -1)
 				for j := range findPath {
-					//mt.Println("0",findPath[j][0])
-					fmt.Println("1", findPath[j][1])
-					//fmt.Println("2",findPath[j][2])
 
 					var rFunc = *regexp.MustCompile(`(.*)\(.*\)|(.*)\)\s?|(.*)\s?`)
 					var findRes = rFunc.FindAllStringSubmatch(findPath[j][2], -1)
@@ -134,13 +123,11 @@ func readLines(path string) ([]string, error) {
 							}
 						}
 					}
-
 				}
-				/*-----------*/
 			} else {
+				NodeId++
 				g.AddNode(&core.Node{split[0], false, NodeId})
-				arrayRoot = append(arrayRoot, rootNode{core.Node{split[0], false, NodeId}, core.LastNode(&g)})
-				//fmt.Println(arrayRoot)
+				arrayRoot = append(arrayRoot, core.Node{split[0], false, NodeId})
 				var LastNodeId int
 				for j := 0; j < len(split)-1; j++ {
 					NodeId++
@@ -148,7 +135,6 @@ func readLines(path string) ([]string, error) {
 					g.AddEdge(&core.Node{split[j], false, NodeId - 1}, &core.Node{split[j+1], false, NodeId})
 					LastNodeId = NodeId
 				}
-				/*-----------*/
 				var regexpPathString string
 				if mapAs[split[len(split)-1]] != "" {
 					regexpPathString = `(?m)([[:word:]]*/|)\'\,\s*` + mapAs[importSplitAs[0][1]] + `\.(.+?)\,`
@@ -159,19 +145,13 @@ func readLines(path string) ([]string, error) {
 				//fmt.Println(rPath.String())
 				var findPath = rPath.FindAllStringSubmatch(content, -1) // тут не scanner.text
 				for j := range findPath {
-					//fmt.Println(findPath[j][2])
-					//fmt.Println("0",findPath[j][0])
-					fmt.Println("1", findPath[j][1])
-					//fmt.Println("2",findPath[j][2])
 					var rFunc = *regexp.MustCompile(`(.*)\(.*\)|(.*)\)\s?|(.*)\s?`)
 					var findRes = rFunc.FindAllStringSubmatch(findPath[j][2], -1)
 
 					for l := 1; l < len(findRes[0]); l++ {
 						if findRes[0][l] != "" {
-							//fmt.Println(findRes[0][l])
 							var splitFindRes = strings.Split(findRes[0][l], ".")
 							NodeId++
-							//fmt.Println("splitFindRes[0]",splitFindRes[0])
 							g.AddNode(&core.Node{splitFindRes[0], true, NodeId})
 							g.AddEdge(&core.Node{split[len(split)-1], false, LastNodeId}, &core.Node{splitFindRes[0], true, NodeId})
 							for m := 1; m <= len(splitFindRes)-1; m++ {
@@ -189,23 +169,65 @@ func readLines(path string) ([]string, error) {
 								g.AddEdge(&core.Node{splitFindRes[len(splitFindRes)-1], true, NodeId - 1}, &core.Node{findPath[j][1], true, NodeId})
 							}
 						}
-
 					}
-
-					//fmt.Println(findPath)
 				}
-				/*-----------*/
-
 			}
-
-			g.String()
-			//fmt.Println("---------")
-
 		}
-
+		g.String()
 	}
+	return arrayRoot, err
+}
 
-	return lines, scanner.Err()
+func readLines(path string, vulnline int64) (string, error) {
+	file, err := os.Open(path)
+	if err != nil {
+		return "", err
+	}
+	defer file.Close()
+
+	if err != nil {
+		return "", err
+	}
+	scanner := bufio.NewScanner(file)
+	var re = regexp.MustCompile(`(?m)def\s+(.*)\(.*\):.*`)
+	var index int64
+	var funcName string
+	for scanner.Scan() {
+		index++
+		if re.FindString(scanner.Text()) != "" {
+			var findRes = re.FindAllStringSubmatch(scanner.Text(), -1)
+			funcName = findRes[0][1]
+		}
+		if index >= vulnline {
+			return funcName, err
+		}
+	}
+	return "", err
+}
+
+func findPathInGraph(g core.ItemGraph, funcname string, filename string, arrayRoot []core.Node) {
+	splitSymbol := strings.Split(filename, "/")
+	for i := range splitSymbol {
+		if splitSymbol[i] != "." {
+			for j := 0; j < len(arrayRoot)-1; j++ {
+				if arrayRoot[j].String() == splitSymbol[i] {
+					var indexRoot = arrayRoot[j].ID
+
+					//fmt.Println(g.FindInGraph(splitSymbol[i+1]))
+
+					var indexNode = core.FindInGraphByIndex(&g, indexRoot, splitSymbol[i+1])
+					fmt.Println(indexRoot)
+					fmt.Println(splitSymbol[i+1])
+
+					if indexNode != -1 {
+						fmt.Println(indexNode)
+					} else {
+						//indexRoot = indexNode
+					}
+				}
+			}
+		}
+	}
 }
 
 var g core.ItemGraph
@@ -215,14 +237,11 @@ func StartAnalyzeBandit() {
 
 	result := gjson.Get(core.ImportReport("examples-report/bandit-django.json"), "results")
 
-	/*-----------testing parsing ------------*/
-	lines, err := readLines("tempSource/urls.py")
+	var arrayRoot, err = buildGraph("tempSource/urls.py")
 	if err != nil {
-		log.Fatalf("readLines: %s", err)
+		log.Fatalf("buildGraph: %s", err)
 	}
-	for i, line := range lines {
-		fmt.Println(i, line)
-	}
+	fmt.Println(arrayRoot)
 
 	/*----------*/
 
@@ -234,6 +253,19 @@ func StartAnalyzeBandit() {
 			BugCWE:  CweId,
 		}
 		/*--------------------*/
+
+		/*-----------testing parsing ------------*/
+
+		var funcresult string
+		funcresult, err = readLines("tempSource/blog_views.py", gjson.Get(name.String(), "line_number").Int())
+		if err != nil {
+			log.Fatalf("readLines: %s", err)
+		}
+		fmt.Println(funcresult)
+
+		fmt.Println(gjson.Get(name.String(), "filename").String())
+
+		findPathInGraph(g, funcresult, gjson.Get(name.String(), "filename").String(), arrayRoot)
 
 		/*-------------------*/
 		source := core.SourceData{

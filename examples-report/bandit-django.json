@@ -275,9 +275,10 @@
   "results": [
     {
       "code": "13     if title:\n14         query = \"SELECT * FROM somesite_post WHERE title = '%s'\" % title\n15         context = {\n",
-      "filename": "./django-vuln-example/somesite/blog_views.py",
+      "filename": "./django-vuln-example/somesite/blog_views",
       "issue_confidence": "LOW",
       "issue_severity": "MEDIUM",
+
       "issue_text": "Possible SQL injection vector through string-based query construction.",
       "line_number": 14,
       "line_range": [
