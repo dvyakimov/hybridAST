@@ -275,7 +275,7 @@
   "results": [
     {
       "code": "13     if title:\n14         query = \"SELECT * FROM somesite_post WHERE title = '%s'\" % title\n15         context = {\n",
-      "filename": "./django-vuln-example/somesite/blog_views",
+      "filename": "/Users/denisyakimov/Desktop/django-vuln-example/somesite/blog_views.py",
       "issue_confidence": "LOW",
       "issue_severity": "MEDIUM",
 
@@ -290,7 +290,7 @@
     },
     {
       "code": "22 # SECURITY WARNING: keep the secret key used in production secret!\n23 SECRET_KEY = 'b)(_!jzhg&hl#^8!)589x$pb)tt%c9)!op%1wh4bb*9(*f-@6x'\n24 \n25 # SECURITY WARNING: don't run with debug turned on in production!\n26 DEBUG = True\n",
-      "filename": "./django-vuln-example/vulnsite/settings.py",
+      "filename": "/Users/denisyakimov/Desktop/django-vuln-example/vulnsite/settings.py",
       "issue_confidence": "MEDIUM",
       "issue_severity": "LOW",
       "issue_text": "Possible hardcoded password: 'b)(_!jzhg&hl#^8!)589x$pb)tt%c9)!op%1wh4bb*9(*f-@6x'",

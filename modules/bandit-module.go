@@ -173,12 +173,11 @@ func buildGraph(path string) ([]core.Node, error) {
 				}
 			}
 		}
-		g.String()
 	}
 	return arrayRoot, err
 }
 
-func readLines(path string, vulnline int64) (string, error) {
+func GetFuncName(path string, vulnline int64) (string, error) {
 	file, err := os.Open(path)
 	if err != nil {
 		return "", err
@@ -205,69 +204,224 @@ func readLines(path string, vulnline int64) (string, error) {
 	return "", err
 }
 
-func findPathInGraph(g core.ItemGraph, funcname string, filename string, arrayRoot []core.Node) {
+func findPathInGraph(g core.ItemGraph, funcname string, filename string, arrayRoot []core.Node) string {
+	filename = strings.Replace(filename, ".py", "", -1)
 	splitSymbol := strings.Split(filename, "/")
-	for i := range splitSymbol {
+
+	for i := 0; i <= len(splitSymbol)-1; i++ {
 		if splitSymbol[i] != "." {
 			for j := 0; j < len(arrayRoot)-1; j++ {
 				if arrayRoot[j].String() == splitSymbol[i] {
 					var indexRoot = arrayRoot[j].ID
-
-					//fmt.Println(g.FindInGraph(splitSymbol[i+1]))
-
-					var indexNode = core.FindInGraphByIndex(&g, indexRoot, splitSymbol[i+1])
-					fmt.Println(indexRoot)
-					fmt.Println(splitSymbol[i+1])
-
-					if indexNode != -1 {
-						fmt.Println(indexNode)
-					} else {
-						//indexRoot = indexNode
+					var indexNode int
+					var isFound = false
+					for ; i < len(splitSymbol)-1; i++ {
+						indexNode = core.FindInGraphByIndex(&g, indexRoot, splitSymbol[i+1])
+						if indexNode != -1 {
+							indexRoot = indexNode
+							isFound = true
+						} else {
+							isFound = false
+						}
+					}
+					if isFound == true {
+						indexNode = core.FindInGraphByIndex(&g, indexRoot, funcname)
+						if indexNode != -1 {
+							if g.GetTheLastNodeValueString(indexNode) != "" {
+								return g.GetTheLastNodeValueString(indexNode)
+							} else {
+								return ""
+							}
+						} else {
+							return ""
+						}
 					}
 				}
 			}
 		}
 	}
+	return ""
 }
 
+//Вторник:
+// 1. Доделать path в графе
+// 2. Импорт проекта и парсинг по файлам
+// 3. Идеи для поиска параметра URL, сформированный план
+
+//Среда:
+// Реализация поиска параметра для URL для моего примера
+// Запаковывание инструментов сканирования в Docker + запаковывание своего приложения
+
+// Четверг:
+// Реализация веб-интерфейса
+
+// Пятница:
+// Реализация графиков
+
 var g core.ItemGraph
+
+func GetUrlPath(pathProject string) (string, error) {
+	managefile, err := os.Open(pathProject + "/manage.py")
+	if err != nil {
+		return "", err
+	}
+	defer managefile.Close()
+
+	// добавить поиск в конструкции типа
+	// var re = regexp.MustCompile(`os\.environ\[\'DJANGO_SETTINGS_MODULE\'\]\s?\=\s?\'\s?(.*)\'.*`)
+
+	var re = regexp.MustCompile(`(?U)os\.environ\.setdefault\(\'DJANGO_SETTINGS_MODULE\',\s+\'(.*)\'.*`)
+	scanner := bufio.NewScanner(managefile)
+	var findResSetting [][]string
+	for scanner.Scan() {
+		if re.FindString(scanner.Text()) != "" {
+			findResSetting = re.FindAllStringSubmatch(scanner.Text(), -1)
+			//fmt.Println(findResSetting[0][1])
+		}
+	}
+	var settingsString = pathProject
+	if findResSetting != nil {
+		splitSymbol := strings.Split(findResSetting[0][1], ".")
+		for i := range splitSymbol {
+			settingsString = settingsString + "/" + splitSymbol[i]
+		}
+		settingsString = settingsString + ".py"
+	}
+	//fmt.Println(settingsString)
+
+	settingsfile, err := os.Open(settingsString)
+	if err != nil {
+		return "", err
+	}
+	defer settingsfile.Close()
+
+	urlFinding := regexp.MustCompile(`(?mU)^ROOT_URLCONF\s?\=\s?\'(.*)\'`)
+	scannerSettings := bufio.NewScanner(settingsfile)
+	var findResUrl [][]string
+
+	for scannerSettings.Scan() {
+		if urlFinding.FindString(scannerSettings.Text()) != "" {
+			findResUrl = urlFinding.FindAllStringSubmatch(scannerSettings.Text(), -1)
+		}
+	}
+
+	var urlString = pathProject
+
+	if findResUrl != nil {
+		splitSymbol := strings.Split(findResUrl[0][1], ".")
+		for i := range splitSymbol {
+			urlString = urlString + "/" + splitSymbol[i]
+		}
+		urlString = urlString + ".py"
+	} else {
+		return "", err
+	}
+
+	return urlString, err
+}
+
+func GetParam(path string, funcname string, vulnNumber int64) (string, error) {
+
+	var funcStart = regexp.MustCompile(`(?m)def\s+` + funcname + `\(.*\):`)
+	var funcEnd = regexp.MustCompile(`(?m)return\s+.*`)
+	var valueGet = regexp.MustCompile(`(?Um)\s?([[:word:]].*[[:word:]])\s\=\srequest\.GET.*\'\s?.*([[:word:]].*[[:word:]])\s?\'\)`)
+	var ifvaluetrue *regexp.Regexp
+	var elsevaluetrue = regexp.MustCompile(`(?m)else:`)
+
+	sourcecodefile, err := os.Open(path)
+	if err != nil {
+		return "", err
+	}
+	defer sourcecodefile.Close()
+
+	scanner := bufio.NewScanner(sourcecodefile)
+	//var funccode [][]string
+	var valueString [][]string
+	var isFuncBlock bool
+	var isIfBlock bool
+	var index int64
+	for scanner.Scan() {
+		index++
+		if funcStart.FindString(scanner.Text()) != "" {
+			isFuncBlock = true
+		}
+		if funcEnd.FindString(scanner.Text()) != "" {
+			isFuncBlock = false
+		}
+		if valueGet.FindString(scanner.Text()) != "" && isFuncBlock == true {
+			valueString = valueGet.FindAllStringSubmatch(scanner.Text(), -1)
+			//fmt.Println(valueString[0][1])
+			ifvaluetrue = regexp.MustCompile(`(?m)if\s+` + valueString[0][1] + `:`)
+		}
+		if ifvaluetrue != nil {
+			if ifvaluetrue.FindString(scanner.Text()) != "" && isFuncBlock == true {
+				isIfBlock = true
+			}
+		}
+		if elsevaluetrue.FindString(scanner.Text()) != "" && isFuncBlock == true {
+			isIfBlock = false
+		}
+		if isIfBlock == true && isFuncBlock == true && index == vulnNumber {
+			return valueString[0][2], err
+		}
+	}
+	return "", err
+}
 
 func StartAnalyzeBandit() {
 	var db = core.InitDB()
 
+	var urlFile, errurlFile = GetUrlPath("/Users/denisyakimov/Desktop/django-vuln-example")
+
+	if errurlFile != nil {
+		log.Fatalf("urlFile: %s", errurlFile)
+	}
+
 	result := gjson.Get(core.ImportReport("examples-report/bandit-django.json"), "results")
 
-	var arrayRoot, err = buildGraph("tempSource/urls.py")
+	var arrayRoot, err = buildGraph(urlFile)
 	if err != nil {
 		log.Fatalf("buildGraph: %s", err)
 	}
-	fmt.Println(arrayRoot)
 
 	/*----------*/
 
 	for _, name := range result.Array() {
+		var BugUrl = "http://127.0.0.1"
 		var CweId = TestidToCWE(core.GetValue(name, "test_id"))
 
 		entry := core.Entrypoint{
 			BugName: core.FindCWE(db, gjson.Get(name.String(), "issue_text").String(), CweId),
 			BugCWE:  CweId,
 		}
-		/*--------------------*/
 
 		/*-----------testing parsing ------------*/
 
 		var funcresult string
-		funcresult, err = readLines("tempSource/blog_views.py", gjson.Get(name.String(), "line_number").Int())
+		funcresult, err = GetFuncName(gjson.Get(name.String(), "filename").String(), gjson.Get(name.String(), "line_number").Int())
 		if err != nil {
-			log.Fatalf("readLines: %s", err)
+			log.Fatalf("GetFuncName: %s", err)
 		}
-		fmt.Println(funcresult)
 
-		fmt.Println(gjson.Get(name.String(), "filename").String())
+		var BugPath = findPathInGraph(g, funcresult, gjson.Get(name.String(), "filename").String(), arrayRoot)
 
-		findPathInGraph(g, funcresult, gjson.Get(name.String(), "filename").String(), arrayRoot)
+		if BugPath != "" {
+			entry.BugPath = BugPath
+		}
+		/*--------------------*/
+		var BugParam string
+		BugParam, err = GetParam(gjson.Get(name.String(), "filename").String(), funcresult, gjson.Get(name.String(), "line_number").Int())
 
-		/*-------------------*/
+		if BugParam != "" {
+			BugUrl = BugUrl + BugPath + "?" + BugParam + "="
+		} else {
+			BugUrl = BugUrl + BugPath
+		}
+
+		//fmt.Println(BugParam)
+
+		fmt.Println(BugUrl)
+
 		source := core.SourceData{
 			Source:       "Bandit",
 			Severity:     gjson.Get(name.String(), "issue_severity").String(),
@@ -276,7 +430,7 @@ func StartAnalyzeBandit() {
 			CodeLine:     gjson.Get(name.String(), "line_number").String(),
 			CodeFile:     gjson.Get(name.String(), "filename").String(),
 		}
-		core.UpdateEntry(entry, source, db, "")
+		core.UpdateEntry(entry, source, db, BugUrl)
 
 		fmt.Println(entry)
 		fmt.Println(source)

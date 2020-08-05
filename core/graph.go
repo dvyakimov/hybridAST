@@ -64,6 +64,23 @@ func FindInGraphByIndex(g *ItemGraph, index int, search string) int {
 	return -1
 }
 
+func (g *ItemGraph) GetValueString(id int) string {
+	if g.nodes[id] != nil {
+		return g.nodes[id].String()
+	} else {
+		return ""
+	}
+}
+
+func (g *ItemGraph) GetTheLastNodeValueString(id int) string {
+	near := g.edges[*g.nodes[id]]
+	if near[0] != nil {
+		return near[0].String()
+	} else {
+		return ""
+	}
+}
+
 // for debug
 func (g *ItemGraph) FindInGraph(search string) int {
 	for i := 0; i < len(g.nodes); i++ {
