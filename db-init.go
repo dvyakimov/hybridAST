@@ -18,7 +18,7 @@ func ConnectDB() {
 }
 
 func ConnectDatabase() (err error) {
-	if db, err = sql.Open("mysql", "root:root@tcp(127.0.0.1:3306)/"); err != nil {
+	if db, err = sql.Open("mysql", "root:root@tcp(godb:3306)/"); err != nil {
 		return
 	}
 	err = db.Ping()
@@ -35,23 +35,15 @@ func InitDB() {
 }
 
 func CreateDatabase() {
+	//fmt.Println("Hello 1")
 	_, err := db.Exec(`CREATE DATABASE dbreport`)
 	if err != nil {
 		fmt.Println(err.Error())
 	} else {
 		fmt.Println(`dbreport successfully created database..`)
 	}
+	//fmt.Println("Hello 2")
 }
-
-var createTable = `
- CREATE TABLE IF NOT EXISTS bugs (
-     bug_id          INTEGER PRIMARY KEY AUTO_INCREMENT
-     ,bug_name       VARCHAR(32)
-     ,bug_cwe        VARCHAR(32)
-     ,bug_severity   VARCHAR(32)
-     ,bug_url        VARCHAR(32)                    
-);
-`
 
 type CweList struct {
 	//ID int64 `gorm:"primary_key"`
@@ -59,18 +51,28 @@ type CweList struct {
 	Name  string
 }
 
+type AppList struct {
+	//ID int64 `gorm:"primary_key"`
+	AppID     string `gorm:"primary_key"`
+	AppName   string
+	Language  string
+	Framework string
+}
+
 func DBStart() {
 	ConnectDB()
 	InitDB()
 
-	db, err := gorm.Open("mysql", "root:root@/dbreport?charset=utf8&parseTime=True&loc=Local")
+	dbGorm, err := gorm.Open("mysql", "root:root@(godb:3306)/dbreport?charset=utf8&parseTime=True&loc=Local")
 	if err != nil {
 		fmt.Println(err)
 	}
-	defer db.Close()
+	defer dbGorm.Close()
 
 	// Migrate the schema
-	db.AutoMigrate(&CweList{})
+	//db.AutoMigrate(&AppList{})
+
+	dbGorm.AutoMigrate(&CweList{})
 
 	lines, err := core.ReadCsv("cwe/2000.csv")
 
@@ -83,7 +85,7 @@ func DBStart() {
 			CweID: line[0],
 			Name:  line[1],
 		}
-		db.FirstOrCreate(&CweList{}, &data)
+		dbGorm.FirstOrCreate(&CweList{}, &data)
 	}
 	fmt.Println("Done")
 

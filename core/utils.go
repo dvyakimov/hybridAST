@@ -35,10 +35,6 @@ func GetValue(name gjson.Result, path string) string {
 	return gjson.Get(name.String(), path).String()
 }
 
-func ExtractVaule(name gjson.Result, path string) gjson.Result {
-	return gjson.Get(name.String(), path)
-}
-
 func ReadCsv(filename string) ([][]string, error) {
 	// Open CSV file
 	f, err := os.Open(filename)

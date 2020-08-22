@@ -1,0 +1,29 @@
+version: '2.1'
+services:
+  web:
+    build: .
+    container_name: go-app
+    ports:
+      - 8080:8080
+    networks:
+      - mynet
+    depends_on:
+      database:
+        condition: service_healthy
+  database:
+    image: mysql
+    container_name: godb
+    ports:
+      - 3306:3306
+    environment:
+      - MYSQL_USER=root
+      - MYSQL_ROOT_PASSWORD=root
+    healthcheck:
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+    networks:
+      - mynet
+networks:
+  mynet:
+    driver: "bridge"
