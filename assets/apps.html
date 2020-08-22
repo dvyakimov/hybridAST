@@ -1,0 +1,13 @@
+{{define "apps"}}
+{{template "header"}}
+
+            <h2>{{.AppName}}</h2>
+            <p>ID: {{.ID}}</p>
+            <p>Name: {{.AppName}}</p>
+            <p>URL: {{.Url}}</p>
+            <p>Language: {{.Language}}</p>
+            <p>Framework: {{.Framework}}</p>
+            <button type="submit" class="btn btn-primary">Scan</button>
+
+{{template "footer"}}
+{{end}}

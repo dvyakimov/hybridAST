@@ -24,6 +24,21 @@ services:
       retries: 10
     networks:
       - mynet
+  #ZAP - DAST Scanner by OWASP. You can disable it if you want
+  zaproxy:
+    image: owasp/zap2docker-stable
+    command: zap.sh -daemon -port 8090 -host 0.0.0.0
+    expose:
+      - "8090"
+    networks:
+      - mynet
+  #Arachni - DAST Scanner by Tasos Laskos. You can disable it if you want
+  arachni:
+    image: arachni/arachni
+    ports:
+      - 7331:7331
+    networks:
+      - mynet
 networks:
   mynet:
     driver: "bridge"

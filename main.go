@@ -8,6 +8,7 @@ import (
 	"hybridAST/core"
 	"log"
 	"net/http"
+	"strconv"
 	"time"
 )
 
@@ -24,12 +25,15 @@ type Vuln struct {
 	Bug_Path   string
 }
 
+type AppPageData struct {
+	IsNotEmpty bool
+	Apps       []AppList
+}
+
 var templates = template.Must(template.ParseGlob("assets/*.html"))
 
-//var tmpl = template.Must(template.ParseFiles("assets/vulns.html"))
-
 func Vulnpage(w http.ResponseWriter, r *http.Request) {
-	db, err := gorm.Open("mysql", "root:root@(godb:3306)/dbreport?charset=utf8&parseTime=True&loc=Local")
+	db, err := gorm.Open("mysql", "root:root@(localhost:3306)/dbreport?charset=utf8&parseTime=True&loc=Local")
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -61,12 +65,87 @@ func Vulnpage(w http.ResponseWriter, r *http.Request) {
 
 }
 
+func AddAppToDb(db *gorm.DB, name string, url string, language string, framework string) {
+	app := AppList{
+		AppName:   name,
+		Language:  language,
+		Url:       url,
+		Framework: framework,
+	}
+	db.Create(&app)
+}
+
 func HomeHandler(w http.ResponseWriter, r *http.Request) {
-	if err := templates.ExecuteTemplate(w, "homepage", nil); err != nil {
+	db, err := gorm.Open("mysql", "root:root@(localhost:3306)/dbreport?charset=utf8&parseTime=True&loc=Local")
+	if err != nil {
+		fmt.Println(err)
+	}
+	defer db.Close()
+
+	var data AppPageData
+
+	var apptemp []*AppList
+	db.Find(&apptemp)
+
+	if apptemp != nil {
+		var apps []AppList
+		for i := range apptemp {
+			var AppTemp AppList
+			AppTemp.ID = apptemp[i].ID
+			AppTemp.Language = apptemp[i].Language
+			AppTemp.Framework = apptemp[i].Framework
+			AppTemp.AppName = apptemp[i].AppName
+			AppTemp.Url = apptemp[i].Url
+			apps = append(apps, AppTemp)
+		}
+		data = AppPageData{Apps: apps, IsNotEmpty: true}
+	}
+
+	switch r.Method {
+	case "GET":
+		if err := templates.ExecuteTemplate(w, "homepage", data); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+	case "POST":
+		name := r.FormValue("name")
+		url := r.FormValue("url")
+		language := r.FormValue("language")
+		framework := r.FormValue("framework")
+
+		AddAppToDb(db, name, url, language, framework)
+
+		fmt.Println(name)
+		if err := templates.ExecuteTemplate(w, "homepage", data); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+	}
+}
+
+func getIdFromRequest(req *http.Request) int {
+	vars := mux.Vars(req)
+	id, _ := strconv.Atoi(vars["id"])
+	return id
+}
+
+func AppHandler(w http.ResponseWriter, r *http.Request) {
+	id := getIdFromRequest(r)
+
+	db, err := gorm.Open("mysql", "root:root@(localhost:3306)/dbreport?charset=utf8&parseTime=True&loc=Local")
+	if err != nil {
+		fmt.Println(err)
+	}
+	defer db.Close()
+
+	var apptemp AppList
+	db.Find(&apptemp, "id=?", id)
+
+	if err := templates.ExecuteTemplate(w, "apps", apptemp); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	//http.ServeFile(w, r, "assets/homepage.html")
+
 }
 
 func main() {
@@ -79,8 +158,11 @@ func main() {
 
 	r.HandleFunc("/", HomeHandler)
 	r.HandleFunc("/vulns", Vulnpage)
+	r.HandleFunc("/apps/{id:[0-9]}", AppHandler)
 
-	http.Handle("/css/", http.StripPrefix("/css/", cssHandler))
+	http.Handle("*/css/", http.StripPrefix("/css/", cssHandler))
+	http.Handle("/apps/css/", http.StripPrefix("/apps/css/", cssHandler))
+
 	http.Handle("/", r)
 	err := http.ListenAndServe(":8080", nil)
 	if err != nil {

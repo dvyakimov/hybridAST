@@ -9,6 +9,20 @@ import (
 	"log"
 )
 
+type CweList struct {
+	//ID int64 `gorm:"primary_key"`
+	CweID string `gorm:"primary_key"`
+	Name  string
+}
+
+type AppList struct {
+	gorm.Model
+	AppName   string
+	Url       string
+	Language  string
+	Framework string
+}
+
 var db *sql.DB
 
 func ConnectDB() {
@@ -18,7 +32,7 @@ func ConnectDB() {
 }
 
 func ConnectDatabase() (err error) {
-	if db, err = sql.Open("mysql", "root:root@tcp(godb:3306)/"); err != nil {
+	if db, err = sql.Open("mysql", "root:root@tcp(localhost:3306)/"); err != nil {
 		return
 	}
 	err = db.Ping()
@@ -45,34 +59,18 @@ func CreateDatabase() {
 	//fmt.Println("Hello 2")
 }
 
-type CweList struct {
-	//ID int64 `gorm:"primary_key"`
-	CweID string `gorm:"primary_key"`
-	Name  string
-}
-
-type AppList struct {
-	//ID int64 `gorm:"primary_key"`
-	AppID     string `gorm:"primary_key"`
-	AppName   string
-	Language  string
-	Framework string
-}
-
 func DBStart() {
 	ConnectDB()
 	InitDB()
 
-	dbGorm, err := gorm.Open("mysql", "root:root@(godb:3306)/dbreport?charset=utf8&parseTime=True&loc=Local")
+	dbGorm, err := gorm.Open("mysql", "root:root@(localhost:3306)/dbreport?charset=utf8&parseTime=True&loc=Local")
 	if err != nil {
 		fmt.Println(err)
 	}
 	defer dbGorm.Close()
 
-	// Migrate the schema
-	//db.AutoMigrate(&AppList{})
-
-	dbGorm.AutoMigrate(&CweList{})
+	dbGorm.AutoMigrate(&CweList{}, &AppList{})
+	//dbGorm.AutoMigrate(&AppList{})
 
 	lines, err := core.ReadCsv("cwe/2000.csv")
 

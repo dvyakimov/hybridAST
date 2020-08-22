@@ -17,37 +17,34 @@
                             </button>
                         </div>
                         <div class="modal-body">
-                            <form>
-                                <div class="form-group">
+                            <form method="POST" action="/">
+                            <div class="form-group">
                                     <label for="recipient-name" class="col-form-label">Name:</label>
-                                    <input type="text" class="form-control" id="recipient-name">
+                                    <input type="text" class="form-control" id="name" name="name">
                                 </div>
                                 <div class="form-group">
                                     <label for="recipient-name" class="col-form-label">URL:</label>
-                                    <input type="text" class="form-control" id="recipient-url">
+                                    <input type="text" class="form-control" id="url" name="url">
                                 </div>
                                 <div class="form-group">
                                     <label for="message-text" class="col-form-label">Language:</label>
-                                    <input type="text" class="form-control" id="recipient-language">
+                                    <input type="text" class="form-control" id="language" name="language">
                                 </div>
                                 <div class="form-group">
                                     <label for="message-text" class="col-form-label">Framework:</label>
-                                    <input type="text" class="form-control" id="recipient-framework">
+                                    <input type="text" class="form-control" id="framework" name="framework">
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="submit" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                    <button type="submit" class="btn btn-primary">Add</button>
                                 </div>
                             </form>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                            <button type="button" class="btn btn-primary">Send message</button>
                         </div>
                     </div>
                 </div>
             </div>
-
-
-
             <div class="line"></div>
-
+            {{if .IsNotEmpty}}
             <table class="table">
                 <thead>
                 <tr>
@@ -60,16 +57,19 @@
                 </tr>
                 </thead>
                 <tbody>
-                <tr>
-                    <th scope="row">1</th>
-                    <td>Test Application</td>
-                    <td>http://127.0.0.1/</td>
-                    <td>Python</td>
-                    <td>Django</td>
+                {{range .Apps}}
+                <tr onclick="toApp({{.ID}})">
+                    <th scope="row">{{.ID}}</th>
+                    <td>{{.AppName}}</td>
+                    <td>{{.Url}}</td>
+                    <td>{{.Language}}</td>
+                    <td>{{.Framework}}</td>
                     <td>Safe</td>
                 </tr>
+                {{end}}
                 </tbody>
             </table>
+            {{end}}
 
             <div class="line"></div>
 
