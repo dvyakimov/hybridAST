@@ -24,7 +24,9 @@ type Vuln struct {
 	Bug_Path   string
 }
 
-var tmpl = template.Must(template.ParseFiles("assets/vulns.html"))
+var templates = template.Must(template.ParseGlob("assets/*.html"))
+
+//var tmpl = template.Must(template.ParseFiles("assets/vulns.html"))
 
 func Vulnpage(w http.ResponseWriter, r *http.Request) {
 	db, err := gorm.Open("mysql", "root:root@(godb:3306)/dbreport?charset=utf8&parseTime=True&loc=Local")
@@ -52,14 +54,19 @@ func Vulnpage(w http.ResponseWriter, r *http.Request) {
 		data = VulnPageData{Vulns: Vulns, IsNotEmpty: true}
 	}
 
-	if err := tmpl.ExecuteTemplate(w, "vulns.html", data); err != nil {
+	if err := templates.ExecuteTemplate(w, "vulnspage", data); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+
 }
 
-func HomeHandler(rw http.ResponseWriter, r *http.Request) {
-	http.ServeFile(rw, r, "assets/index.html")
+func HomeHandler(w http.ResponseWriter, r *http.Request) {
+	if err := templates.ExecuteTemplate(w, "homepage", nil); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	//http.ServeFile(w, r, "assets/homepage.html")
 }
 
 func main() {

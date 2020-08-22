@@ -125,7 +125,7 @@ span {
 
 #sidebar ul.components {
     padding: 20px 0;
-    border-bottom: 1px solid #47748b;
+    border-bottom: 1px solid #821414;
 }
 
 #sidebar ul li a {
@@ -135,7 +135,7 @@ span {
 }
 
 #sidebar ul li a:hover {
-    color: #7386d5;
+    color: #821414;
     background: #fff;
 }
 
@@ -164,7 +164,7 @@ a[data-toggle="collapse"] {
 ul ul a {
     font-size: 0.9em !important;
     padding-left: 30px !important;
-    background: #6d7fcc;
+    background: #821414;
 }
 
 ul.CTAs {
@@ -181,12 +181,12 @@ ul.CTAs a {
 
 a.download {
     background: #fff;
-    color: #7386D5;
+    color: #821414;
 }
 
 a.article,
 a.article:hover {
-    background: #6d7fcc !important;
+    background: #821414 !important;
     color: #fff !important;
 }
 
