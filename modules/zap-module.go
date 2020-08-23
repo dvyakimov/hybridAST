@@ -7,6 +7,7 @@ import (
 	"github.com/zaproxy/zap-api-go/zap"
 	"hybridAST/core"
 	"log"
+	"net/http"
 	"strconv"
 	"time"
 )
@@ -16,6 +17,19 @@ var target string
 func init() {
 	flag.StringVar(&target, "target", "http://192.168.168.2:8080", "target address")
 	flag.Parse()
+}
+
+func CheckZAP(url string) bool {
+	resp, err := http.Get(url)
+	if err != nil {
+	}
+	defer resp.Body.Close()
+
+	if resp != nil {
+		return true
+	} else {
+		return false
+	}
 }
 
 func StartScanZAP() string {
@@ -33,6 +47,7 @@ func StartScanZAP() string {
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	// The scan now returns a scan id to support concurrent scanning
 	scanid := resp["scan"].(string)
 	for {

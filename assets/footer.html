@@ -14,15 +14,18 @@
             $('#sidebar').toggleClass('active');
         });
     });
-    function toHome() {
-        location.replace("http://127.0.0.1:8080/")
+    function toApplist() {
+        location.replace("http://127.0.0.1:8080/apps")
     }
     function toVulns() {
         location.replace("http://127.0.0.1:8080/vulns")
     }
-
     function toApp(id) {
-        location.replace("http://127.0.0.1:8080/apps/" + id)
+        location.replace("http://127.0.0.1:8080/apps" + id)
+    }
+
+    function toTools() {
+        location.replace("http://127.0.0.1:8080/tools")
     }
 
 </script>

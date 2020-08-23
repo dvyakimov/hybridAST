@@ -27,7 +27,7 @@ services:
   #ZAP - DAST Scanner by OWASP. You can disable it if you want
   zaproxy:
     image: owasp/zap2docker-stable
-    command: zap.sh -daemon -port 8090 -host 0.0.0.0
+    command: zap.sh -daemon -port 8090 -host 0.0.0.0 -config api.disablekey=true -config api.addrs.addr.name=.\* -config api.addrs.addr.regex=true
     expose:
       - "8090"
     networks:

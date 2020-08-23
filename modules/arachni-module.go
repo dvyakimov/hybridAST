@@ -7,9 +7,23 @@ import (
 	"github.com/tidwall/gjson"
 	"hybridAST/core"
 	"log"
+	"net/http"
 	"strings"
 	"time"
 )
+
+func CheckArachni(url string) bool {
+	resp, err := http.Get(url)
+	if err != nil {
+	}
+	defer resp.Body.Close()
+
+	if resp != nil {
+		return true
+	} else {
+		return false
+	}
+}
 
 func StartScanArachni(host string) string {
 	client := resty.New()

@@ -1,0 +1,44 @@
+{{define "tools"}}
+{{template "header"}}
+
+<div class="card" style="width: 18rem;">
+    <img class="card-img-top" src="images/owasp-zap-logo.png" alt="OWASP ZAP">
+    <div class="card-body">
+        <h5 class="card-title">OWASP ZAP</h5>
+        <p class="card-text">DAST Scanner by OWASP</p>
+    </div>
+    <ul class="list-group list-group-flush">
+        {{if .ZapStatus}}
+            <li class="list-group-item"><p class="text-success">Connected</p></li>
+        {{else}}
+            <li class="list-group-item"><p class="text-danger">Disconnected</p></li>
+        {{end}}
+    </ul>
+    <!--<div class="card-body">
+        <a href="#" class="card-link">Another link</a>
+    </div> -->
+</div>
+<br />
+<div class="card" style="width: 18rem;">
+    <img class="card-img-top" src="images/arachni-logo.png" alt="Arachni">
+    <div class="card-body">
+        <h5 class="card-title">Arachni</h5>
+        <p class="card-text">DAST Scanner by by Tasos Laskos</p>
+    </div>
+    <ul class="list-group list-group-flush">
+        {{if .ArachniStatus}}
+            <li class="list-group-item"><p class="text-success">Connected</p></li>
+        {{else}}
+            <li class="list-group-item"><p class="text-danger">Disconnected</p></li>
+        {{end}}
+    </ul>
+    <!--<div class="card-body">
+        <a href="#" class="card-link">Another link</a>
+    </div> -->
+</div>
+
+
+
+
+{{template "footer"}}
+{{end}}

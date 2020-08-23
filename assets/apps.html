@@ -1,13 +1,26 @@
 {{define "apps"}}
 {{template "header"}}
+<form method="POST" action="/apps/{{.ID}}" xmlns="http://www.w3.org/1999/html">
+    <h2>{{.AppName}}</h2>
+    <p>ID: {{.ID}}</p>
+    <p>Name: {{.AppName}}</p>
+    <p>URL: {{.Url}}</p>
+    <p>Language: {{.Language}}</p>
+    <p>Framework: {{.Framework}}</p>
 
-            <h2>{{.AppName}}</h2>
-            <p>ID: {{.ID}}</p>
-            <p>Name: {{.AppName}}</p>
-            <p>URL: {{.Url}}</p>
-            <p>Language: {{.Language}}</p>
-            <p>Framework: {{.Framework}}</p>
-            <button type="submit" class="btn btn-primary">Scan</button>
+    <input type="checkbox" id="zaproxy" name="zaproxy" value="zapproxy">
+    <label for="zaproxy"> OWASP ZAP</label><br>
+    <input type="checkbox" id="arachni" name="arachni" value="arachni">
+    <label for="arachni"> Arachni</label><br>
+
+    <input type="hidden" name="appid" value="{{.ID}}">
+    <input type="hidden" name="appname" value="{{.AppName}}">
+    <input type="hidden" name="appurl" value="{{.Url}}">
+    <input type="hidden" name="applang" value="{{.Language}}">
+    <input type="hidden" name="appframe" value="{{.Framework}}">
+    <button type="submit" class="btn btn-primary">Scan</button>
+</form>
+
 
 {{template "footer"}}
 {{end}}
