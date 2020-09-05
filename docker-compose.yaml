@@ -25,6 +25,8 @@ services:
       test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
       timeout: 20s
       retries: 10
+    security_opt:
+      - seccomp:unconfined
     networks:
       - mynet
   #ZAP - DAST Scanner by OWASP. You can disable it if you want

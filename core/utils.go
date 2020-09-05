@@ -2,20 +2,25 @@ package core
 
 import (
 	"encoding/csv"
-	"fmt"
 	"github.com/jinzhu/gorm"
 	"github.com/tidwall/gjson"
 	"io/ioutil"
 	"os"
 )
 
-func ImportReport(RerortURL string) string {
-	jsonFile, err := os.Open(RerortURL)
+func ImportReport(path string) string {
+
+	jsonFile, err := os.Open(path)
 	if err != nil {
-		fmt.Println(err)
+		Error.Println("ImportReport:,", err)
 	}
 	defer jsonFile.Close()
-	byteValue, _ := ioutil.ReadAll(jsonFile)
+	byteValue, err := ioutil.ReadAll(jsonFile)
+
+	if err != nil {
+		Error.Println("ImportReport:", err)
+	}
+
 	return string(byteValue)
 }
 
@@ -25,7 +30,7 @@ func InitDB() *gorm.DB {
 
 	db, err := gorm.Open("mysql", "root:root@("+dbhost+":"+dbport+")/dbreport?charset=utf8&parseTime=True&loc=Local")
 	if err != nil {
-		fmt.Println(err)
+		Error.Println("InitDB:", err)
 	}
 	//defer db.Close()
 

@@ -15,15 +15,17 @@ function onResponse(response) {
 
 function senddata() {
     var file = document.getElementById("inputFile").files[0];
+    var tool = document.getElementById("ChooseToolReport").value
 
     if (!file) {
         return;
     }
-    upload(file);
+    upload(file,tool);
 
-    function upload(file) {
+    function upload(file,tool) {
         var formData = new FormData();
         formData.append('file', file);
+        formData.append('tool', tool);
 
         post('/apps/uploadReport', formData)
             .then(onResponse)
@@ -54,8 +56,26 @@ function addapp() {
         post('/apps/addApp', formData)
             .then(onResponse)
             .catch(onResponse)
-
-
     }
 }(document, axios);
 
+
+function startscan(idApp) {
+    var formData = new FormData();
+    if (document.getElementById("zaproxy").checked === true) {
+        formData.append('zaproxy', zaproxy);
+    }
+    if (document.getElementById("arachni").checked === true) {
+        formData.append('arachni', arachni);
+    }
+
+    formData.append('idApp', idApp);
+
+    post('/apps/startScan', formData)
+        .then(onResponse)
+        .catch(onResponse)
+
+    document.getElementById("zaproxy").checked = false;
+    document.getElementById("arachni").checked = false;
+
+}(document, axios);

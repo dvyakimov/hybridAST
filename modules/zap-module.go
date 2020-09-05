@@ -93,8 +93,8 @@ func StartScanZap(url string) {
 	AnalyzeZap(SendStartZap(url))
 }
 
-func ImportReportZap() {
-	AnalyzeArachni(core.ImportReport("examples-report/zap-report-example.json"))
+func ImportReportZap(report string) {
+	AnalyzeZap(core.ImportReport(report))
 }
 
 func AnalyzeZap(report string) {

@@ -11,8 +11,6 @@
     </button>
 </div>
 
-
-<form method="POST" action="/apps/{{.ID}}" xmlns="http://www.w3.org/1999/html">
     <h2>{{.AppName}}</h2>
     <p>ID: {{.ID}}</p>
     <p>Name: {{.AppName}}</p>
@@ -20,22 +18,36 @@
     <p>Language: {{.Language}}</p>
     <p>Framework: {{.Framework}}</p>
 
-    <input type="checkbox" id="zaproxy" name="zaproxy" value="zapproxy">
-    <label for="zaproxy"> OWASP ZAP</label><br>
-    <input type="checkbox" id="arachni" name="arachni" value="arachni">
-    <label for="arachni"> Arachni</label><br>
+    <button type="submit" class="btn btn-primary" data-toggle="modal" data-target="#ScanModal">Scan</button>
+    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#ImportModal">Import</button>
 
-    <input type="hidden" name="appid" value="{{.ID}}">
-    <input type="hidden" name="appname" value="{{.AppName}}">
-    <input type="hidden" name="appurl" value="{{.Url}}">
-    <input type="hidden" name="applang" value="{{.Language}}">
-    <input type="hidden" name="appframe" value="{{.Framework}}">
+<div class="modal fade" id="ScanModal" tabindex="-1" role="dialog" aria-labelledby="ScanModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="ScanModalLabel">Start Scan</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <h5>DAST tools:</h5>
+                <div class="form-group">
+                    <input type="checkbox" id="zaproxy" name="zaproxy" value="zapproxy">
+                    <label for="zaproxy"> OWASP ZAP</label><br>
+                    <input type="checkbox" id="arachni" name="arachni" value="arachni">
+                    <label for="arachni"> Arachni</label><br>
+                </div>
+                <!--<form enctype="multipart/form-data" id="my_form">-->
+                <div class="modal-footer">
+                    <input type="button" value="scan" class="btn btn-primary" onclick="startscan({{.ID}})" data-dismiss="modal" />
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
-
-    <button type="submit" class="btn btn-primary">Scan</button>
-    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModalCenter"> Import </button>
-</form>
-    <div class="modal fade" id="exampleModalCenter" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal fade" id="ImportModal" tabindex="-1" role="dialog" aria-labelledby="ImportModalLabel" aria-hidden="true">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
@@ -47,10 +59,10 @@
                 <div class="modal-body">
                         <div class="form-group">
                             <label class="mr-sm-2" for="inlineFormCustomSelect">Tool</label>
-                            <select class="custom-select mr-sm-2" id="inlineFormCustomSelect">
+                            <select class="custom-select mr-sm-2" id="ChooseToolReport">
                                 <option selected>Choose...</option>
-                                <option value="1">OWASP ZAP</option>
-                                <option value="2">Arachni</option>
+                                <option value="OWASP ZAP">OWASP ZAP</option>
+                                <option value="Arachni">Arachni</option>
                             </select>
                         </div>
                     <!--<form enctype="multipart/form-data" id="my_form">-->

@@ -2,13 +2,16 @@ package main
 
 import (
 	"github.com/gorilla/mux"
+	"hybridAST/core"
 	"hybridAST/web"
+	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 )
 
 func main() {
-
+	core.Init(ioutil.Discard, os.Stdout, os.Stdout, os.Stderr)
 	DBStart()
 
 	r := mux.NewRouter()
@@ -20,6 +23,7 @@ func main() {
 	r.HandleFunc("/apps", web.AppListHandler)
 	r.HandleFunc("/apps/uploadReport", web.UploadFile)
 	r.HandleFunc("/apps/addApp", web.AddApp)
+	r.HandleFunc("/apps/startScan", web.StartScan)
 
 	r.HandleFunc("/vulns", web.VulnlistHandler)
 	r.HandleFunc("/tools", web.ToolsHandler)
