@@ -1,3 +1,18 @@
+function onResponse(response) {
+    var divNotification = document.querySelector("#notice");
+    var divNotificationMessage = document.querySelector("#notice-message");
+    var className = (response.status !== 400) ? "alert-success" : "alert-danger";
+    divNotificationMessage.innerHTML = response.data;
+
+    divNotification.classList.add(className);
+
+    document.getElementById("notice").style.display = "block";
+    setTimeout(function () {
+        document.getElementById("notice").style.display = "none";
+        divNotification.classList.remove(className);
+    },3000);
+}
+
 function senddata() {
     var file = document.getElementById("inputFile").files[0];
 
@@ -10,23 +25,37 @@ function senddata() {
         var formData = new FormData();
         formData.append('file', file);
 
-        post('/upload', formData)
+        post('/apps/uploadReport', formData)
             .then(onResponse)
             .catch(onResponse)
     }
+}(document, axios);
 
-    function onResponse(response) {
-        var divNotification = document.querySelector("#notice");
-        var divNotificationMessage = document.querySelector("#notice-message");
-        var className = (response.status !== 400) ? "alert-success" : "alert-danger";
-        divNotificationMessage.innerHTML = response.data;
+function addapp() {
+    var name = document.getElementById("name").value;
+    var url = document.getElementById("url").value;
+    var language = document.getElementById("language").value
+    var framework = document.getElementById("framework").value
 
-        divNotification.classList.add(className);
+    uploadAppData(name, url, language, framework);
 
-        document.getElementById("notice").style.display = "block";
-        setTimeout(function () {
-            document.getElementById("notice").style.display = "none";
-            divNotification.classList.remove(className);
-        },3000);
+    name.reset();
+    url.reset();
+    language.reset();
+    framework.reset();
+
+    function uploadAppData(name,url,language,framework) {
+        var formData = new FormData();
+        formData.append('name', name);
+        formData.append('url', url);
+        formData.append('language', language);
+        formData.append('framework', framework);
+
+        post('/apps/addApp', formData)
+            .then(onResponse)
+            .catch(onResponse)
+
+
     }
 }(document, axios);
+

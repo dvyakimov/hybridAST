@@ -18,7 +18,8 @@ func main() {
 	jsHandler := http.FileServer(http.Dir("./assets/js/"))
 
 	r.HandleFunc("/apps", web.AppListHandler)
-	r.HandleFunc("/upload", web.UploadFile)
+	r.HandleFunc("/apps/uploadReport", web.UploadFile)
+	r.HandleFunc("/apps/addApp", web.AddApp)
 
 	r.HandleFunc("/vulns", web.VulnlistHandler)
 	r.HandleFunc("/tools", web.ToolsHandler)
@@ -31,6 +32,7 @@ func main() {
 
 	http.Handle("/images/", http.StripPrefix("/images/", imagesHandler))
 	http.Handle("/apps/js/", http.StripPrefix("/apps/js/", jsHandler))
+	http.Handle("/js/", http.StripPrefix("/js/", jsHandler))
 
 	http.Handle("/", r)
 	err := http.ListenAndServe(":8080", nil)

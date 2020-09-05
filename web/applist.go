@@ -7,16 +7,6 @@ import (
 	"os"
 )
 
-func AddAppToDb(db *gorm.DB, name string, url string, language string, framework string) {
-	app := AppList{
-		AppName:   name,
-		Language:  language,
-		Url:       url,
-		Framework: framework,
-	}
-	db.Create(&app)
-}
-
 type AppPageData struct {
 	IsNotEmpty bool
 	Apps       []AppList
@@ -53,19 +43,6 @@ func AppListHandler(w http.ResponseWriter, r *http.Request) {
 
 	switch r.Method {
 	case "GET":
-		if err := templates.ExecuteTemplate(w, "applist", data); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-	case "POST":
-		name := r.FormValue("name")
-		url := r.FormValue("url")
-		language := r.FormValue("language")
-		framework := r.FormValue("framework")
-
-		AddAppToDb(db, name, url, language, framework)
-
-		fmt.Println(name)
 		if err := templates.ExecuteTemplate(w, "applist", data); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
