@@ -1,0 +1,43 @@
+{{define "vuln"}}
+{{template "header"}}
+
+    <h2>{{.BugName}}</h2>
+    <p>CWE: {{.BugCWE}}</p>
+    <p>Path: {{.BugPath}}</p>
+
+    <table class="table">
+        <thead>
+        <tr>
+            <th scope="col">Param</th>
+        </tr>
+        </thead>
+        <tbody>
+        {{range .Params}}
+        <tr>
+        <td><p>{{.ParamName}}</p></td>
+        </tr>
+        {{end}}
+        </tbody>
+    </table>
+
+    <table class="table">
+        <thead>
+        <tr>
+            <th scope="col">Source</th>
+            <th scope="col">Severity</th>
+            <th scope="col">SourceName</th>
+        </tr>
+        </thead>
+        <tbody>
+        {{range .Sources}}
+        <tr>
+                <td>{{.Source}}</td>
+                <td>{{.Severity}}</td>
+                <td>{{.SourceName}}</td>
+        </tr>
+        {{end}}
+        </tbody>
+    </table>
+
+{{template "footer"}}
+{{end}}

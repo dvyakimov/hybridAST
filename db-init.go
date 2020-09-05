@@ -7,6 +7,7 @@ import (
 	"github.com/jinzhu/gorm"
 	"hybridAST/core"
 	"log"
+	"os"
 )
 
 type CweList struct {
@@ -32,7 +33,10 @@ func ConnectDB() {
 }
 
 func ConnectDatabase() (err error) {
-	if db, err = sql.Open("mysql", "root:root@tcp(godb:3306)/"); err != nil {
+	dbhost := os.Getenv("DB_HOST")
+	dbport := os.Getenv("DB_PORT")
+
+	if db, err = sql.Open("mysql", "root:root@tcp("+dbhost+":"+dbport+")/"); err != nil {
 		return
 	}
 	err = db.Ping()
@@ -63,7 +67,11 @@ func DBStart() {
 	ConnectDB()
 	InitDB()
 
-	dbGorm, err := gorm.Open("mysql", "root:root@(godb:3306)/dbreport?charset=utf8&parseTime=True&loc=Local")
+	dbhost := os.Getenv("DB_HOST")
+	dbport := os.Getenv("DB_PORT")
+
+	dbGorm, err := gorm.Open("mysql", "root:root@("+dbhost+":"+dbport+")/dbreport?charset=utf8&parseTime=True&loc=Local")
+
 	if err != nil {
 		fmt.Println(err)
 	}

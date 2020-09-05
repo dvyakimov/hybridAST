@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/jinzhu/gorm"
 	"net/http"
+	"os"
 )
 
 func AddAppToDb(db *gorm.DB, name string, url string, language string, framework string) {
@@ -22,7 +23,10 @@ type AppPageData struct {
 }
 
 func AppListHandler(w http.ResponseWriter, r *http.Request) {
-	db, err := gorm.Open("mysql", "root:root@(godb:3306)/dbreport?charset=utf8&parseTime=True&loc=Local")
+	dbhost := os.Getenv("DB_HOST")
+	dbport := os.Getenv("DB_PORT")
+
+	db, err := gorm.Open("mysql", "root:root@("+dbhost+":"+dbport+")/dbreport?charset=utf8&parseTime=True&loc=Local")
 	if err != nil {
 		fmt.Println(err)
 	}

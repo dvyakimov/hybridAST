@@ -14,8 +14,8 @@ import (
 
 var target string
 
-func init() {
-	flag.StringVar(&target, "target", "http://192.168.168.2:8080", "target address")
+func initZap(host string) {
+	flag.StringVar(&target, "target", host, "target address")
 	flag.Parse()
 }
 
@@ -32,9 +32,10 @@ func CheckZAP(url string) bool {
 	}
 }
 
-func StartScanZAP() string {
+func SendStartZap(host string) string {
+	initZap(host)
 	cfg := &zap.Config{
-		Proxy: "http://192.168.168.3:8080",
+		Proxy: "http://zaproxy:8090",
 	}
 	client, err := zap.NewClient(cfg)
 	if err != nil {
@@ -88,10 +89,18 @@ func StartScanZAP() string {
 	return string(RawReport)
 }
 
-func StartAnalyzeZAP() {
+func StartScanZap(url string) {
+	AnalyzeZap(SendStartZap(url))
+}
+
+func ImportReportZap() {
+	AnalyzeArachni(core.ImportReport("examples-report/zap-report-example.json"))
+}
+
+func AnalyzeZap(report string) {
 	var db = core.InitDB()
 
-	result := gjson.Get(core.ImportReport("examples-report/zap-report-example.json"), "site.0.alerts")
+	result := gjson.Get(report, "site.0.alerts")
 
 	for _, name := range result.Array() {
 		resultInstances := gjson.Get(name.String(), "instances")

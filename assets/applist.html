@@ -17,7 +17,7 @@
                             </button>
                         </div>
                         <div class="modal-body">
-                            <form method="POST" action="/">
+                            <form method="POST" action="/apps">
                             <div class="form-group">
                                     <label for="recipient-name" class="col-form-label">Name:</label>
                                     <input type="text" class="form-control" id="name" name="name">
@@ -58,7 +58,7 @@
                 </thead>
                 <tbody>
                 {{range .Apps}}
-                <tr onclick="toApp({{.ID}})">
+                <tr onclick="$( document ).ready(toApp({{.ID}}))">
                     <th scope="row">{{.ID}}</th>
                     <td>{{.AppName}}</td>
                     <td>{{.Url}}</td>

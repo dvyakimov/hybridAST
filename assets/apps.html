@@ -1,5 +1,17 @@
 {{define "apps"}}
 {{template "header"}}
+
+<script src="js/app.js"></script>
+<script src="js/api.js"></script>
+
+<div class="alert alert-dismissible fade show" role="alert" id="notice" style="display:none;" >
+    <div id="notice-message"></div>
+    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+    </button>
+</div>
+
+
 <form method="POST" action="/apps/{{.ID}}" xmlns="http://www.w3.org/1999/html">
     <h2>{{.AppName}}</h2>
     <p>ID: {{.ID}}</p>
@@ -18,8 +30,47 @@
     <input type="hidden" name="appurl" value="{{.Url}}">
     <input type="hidden" name="applang" value="{{.Language}}">
     <input type="hidden" name="appframe" value="{{.Framework}}">
+
+
     <button type="submit" class="btn btn-primary">Scan</button>
+    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModalCenter"> Import </button>
 </form>
+    <div class="modal fade" id="exampleModalCenter" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Import report</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                        <div class="form-group">
+                            <label class="mr-sm-2" for="inlineFormCustomSelect">Tool</label>
+                            <select class="custom-select mr-sm-2" id="inlineFormCustomSelect">
+                                <option selected>Choose...</option>
+                                <option value="1">OWASP ZAP</option>
+                                <option value="2">Arachni</option>
+                            </select>
+                        </div>
+                    <!--<form enctype="multipart/form-data" id="my_form">-->
+                        <div class="form-group">
+                            <div class="custom-file">
+                                <input type="file" class="custom-file-input" id="inputFile" name="file">
+                                <label class="custom-file-label" for="inputFile">Choose file</label>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <input type="button" value="upload" class="btn btn-primary" onclick="senddata()" data-dismiss="modal" />
+                        </div>
+                    <!--</form>-->
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
 
 
 {{template "footer"}}

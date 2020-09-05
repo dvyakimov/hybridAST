@@ -20,10 +20,15 @@ func ImportReport(RerortURL string) string {
 }
 
 func InitDB() *gorm.DB {
-	db, err := gorm.Open("mysql", "root:root@/dbreport?charset=utf8&parseTime=True&loc=Local")
+	dbhost := os.Getenv("DB_HOST")
+	dbport := os.Getenv("DB_PORT")
+
+	db, err := gorm.Open("mysql", "root:root@("+dbhost+":"+dbport+")/dbreport?charset=utf8&parseTime=True&loc=Local")
 	if err != nil {
 		fmt.Println(err)
 	}
+	//defer db.Close()
+
 	// Migrate the schema
 	db.AutoMigrate(&Entrypoint{}, &Params{}, &SourceData{})
 	db.Model(&Params{}).AddForeignKey("params_id", "entrypoints(id)", "CASCADE", "CASCADE")

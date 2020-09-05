@@ -25,14 +25,14 @@ func CheckArachni(url string) bool {
 	}
 }
 
-func StartScanArachni(host string) string {
+func SendStartArachni(host string) string {
 	client := resty.New()
 	respPostStartScan, err := client.R().
 		SetBody(map[string]string{
 			"url": host,
 		}).
 		SetHeader("Accept", "application/json").
-		Post("http://192.168.168.3:7331/scans")
+		Post("http://zaproxy/scans")
 
 	if err != nil {
 		log.Fatalf("ERROR:", err)
@@ -43,7 +43,7 @@ func StartScanArachni(host string) string {
 	for {
 		respGetStatus, err := client.R().
 			SetHeader("Accept", "application/json").
-			Get("http://192.168.168.3:7331/scans/" + lastId.String())
+			Get("http://zaproxy:7331/scans/" + lastId.String())
 		if err != nil {
 			log.Fatalf("ERROR:", err)
 		}
@@ -60,18 +60,25 @@ func StartScanArachni(host string) string {
 
 	respGetReport, err := client.R().
 		SetHeader("Accept", "application/json").
-		Get("http://192.168.168.3:7331/scans/" + lastId.String() + "/report.json")
+		Get("http://zaproxy:7331/scans/" + lastId.String() + "/report.json")
 	if err != nil {
 		log.Fatalf("ERROR:", err)
 	}
 	return respGetReport.String()
 }
 
-func StartAnalyzeArachni() {
+func StartScanArachni(url string) {
+	AnalyzeArachni(SendStartArachni(url))
+}
+
+func ImportReportArachni() {
+	AnalyzeArachni(core.ImportReport("examples-report/arachni-report-example.json"))
+}
+
+func AnalyzeArachni(report string) {
 	var db = core.InitDB()
 
-	result := gjson.Get(core.ImportReport("examples-report/arachni-report-example.json"), "issues")
-	//result := gjson.Get(StartScanArachni("http://127.0.0.1:8000"), "issues")
+	result := gjson.Get(report, "issues")
 
 	for _, name := range result.Array() {
 

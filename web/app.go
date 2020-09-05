@@ -5,7 +5,11 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/jinzhu/gorm"
 	"html/template"
+	"hybridAST/modules"
+	"io/ioutil"
+	"mime/multipart"
 	"net/http"
+	"os"
 	"strconv"
 )
 
@@ -15,6 +19,50 @@ type AppList struct {
 	Url       string
 	Language  string
 	Framework string
+}
+
+func UploadFile(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Redirect(w, r, "/", http.StatusSeeOther)
+		return
+	}
+
+	file, handle, err := r.FormFile("file")
+	if err != nil {
+		fmt.Fprintf(w, "%v", err.Error())
+		return
+	}
+	defer file.Close()
+
+	mimeType := handle.Header.Get("Content-Type")
+	switch mimeType {
+	case "image/jpeg", "image/jpg", "image/png":
+		saveFile(w, file, handle)
+	default:
+		jsonResponse(w, http.StatusBadRequest, "El formato de la imágen no es válido")
+	}
+}
+
+func saveFile(w http.ResponseWriter, file multipart.File, handle *multipart.FileHeader) {
+	data, err := ioutil.ReadAll(file)
+	if err != nil {
+		fmt.Fprintf(w, "%v", err.Error())
+		return
+	}
+
+	err = ioutil.WriteFile("./files/"+handle.Filename, data, 0666)
+	if err != nil {
+		fmt.Fprintf(w, "%v", err.Error())
+		return
+	}
+	fmt.Println("File uploaded!")
+	jsonResponse(w, http.StatusCreated, "Archivo guardado exitosamente")
+}
+
+func jsonResponse(w http.ResponseWriter, code int, message string) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(code)
+	fmt.Fprint(w, message)
 }
 
 func getIdFromRequest(req *http.Request) int {
@@ -28,7 +76,10 @@ var templates = template.Must(template.ParseGlob("assets/*.html"))
 func AppHandler(w http.ResponseWriter, r *http.Request) {
 	id := getIdFromRequest(r)
 
-	db, err := gorm.Open("mysql", "root:root@(godb:3306)/dbreport?charset=utf8&parseTime=True&loc=Local")
+	dbhost := os.Getenv("DB_HOST")
+	dbport := os.Getenv("DB_PORT")
+
+	db, err := gorm.Open("mysql", "root:root@("+dbhost+":"+dbport+")/dbreport?charset=utf8&parseTime=True&loc=Local")
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -52,12 +103,12 @@ func AppHandler(w http.ResponseWriter, r *http.Request) {
 
 		if r.Form["zaproxy"] != nil {
 			fmt.Println("OWASP ZAP Scan is started")
-
+			//modules.StartAnalyzeZAP()
 		}
 
 		if r.Form["arachni"] != nil {
 			fmt.Println("Arachni Scan is started")
-
+			modules.StartScanArachni(url)
 		}
 
 		fmt.Println("Result:", name, id, framework, url, lang)
