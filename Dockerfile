@@ -1,4 +1,4 @@
-FROM golang:latest
+FROM golang:alpine AS build-env
 
 WORKDIR /app
 
@@ -10,10 +10,19 @@ RUN go mod download
 
 COPY . .
 
-RUN go build -o main .
+RUN go build -o /go/bin/main
 
-# Expose port 8080 to the outside world
+####################
+### Second stage ###
+####################
+
+FROM alpine:3.7
+
 EXPOSE 8080
 
-# Command to run the executable
-CMD ["./main"]
+WORKDIR /app
+
+COPY --from=build-env /app /app
+COPY --from=build-env /go/bin/main /go/bin/main
+
+CMD ["/go/bin/main"]

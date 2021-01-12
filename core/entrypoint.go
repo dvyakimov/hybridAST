@@ -15,6 +15,7 @@ type Entrypoint struct {
 	BugCWE      string
 	BugHostPort string
 	BugPath     string
+	Is_correl   bool
 	Params      []Params     `gorm:"foreignkey:ParamsID"`
 	SourceData  []SourceData `gorm:"foreignkey:SourceNameID"`
 }
@@ -117,6 +118,7 @@ func UpdateEntry(entry Entrypoint, source SourceData, db *gorm.DB, BugUrl string
 		fmt.Println("Correalted Item")
 		source.SourceNameID = ParamSaveId
 		db.Create(&source)
+		//db.Model(&entry).Update("is_correl","true")
 	}
 }
 

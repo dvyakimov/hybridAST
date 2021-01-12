@@ -16,7 +16,7 @@ func CheckArachni(url string) bool {
 	resp, err := http.Get(url)
 	if err != nil {
 	}
-	defer resp.Body.Close()
+	//defer resp.Body.Close()
 
 	if resp != nil {
 		return true
@@ -32,11 +32,13 @@ func SendStartArachni(host string) string {
 			"url": host,
 		}).
 		SetHeader("Accept", "application/json").
-		Post("http://arachni/scans")
+		Post("http://arachni:7331/scans")
 
 	if err != nil {
 		log.Fatalf("ERROR:", err)
 	}
+
+	fmt.Println(string(respPostStartScan.Body()))
 
 	lastId := gjson.Get(string(respPostStartScan.Body()), "id")
 
@@ -64,6 +66,9 @@ func SendStartArachni(host string) string {
 	if err != nil {
 		log.Fatalf("ERROR:", err)
 	}
+
+	fmt.Println(respGetReport.String())
+
 	return respGetReport.String()
 }
 

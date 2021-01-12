@@ -1,7 +1,6 @@
 package modules
 
 import (
-	"flag"
 	"fmt"
 	"github.com/tidwall/gjson"
 	"github.com/zaproxy/zap-api-go/zap"
@@ -12,18 +11,11 @@ import (
 	"time"
 )
 
-var target string
-
-func initZap(host string) {
-	flag.StringVar(&target, "target", host, "target address")
-	flag.Parse()
-}
-
 func CheckZAP(url string) bool {
 	resp, err := http.Get(url)
 	if err != nil {
 	}
-	defer resp.Body.Close()
+	//defer resp.Body.Close()
 
 	if resp != nil {
 		return true
@@ -33,7 +25,7 @@ func CheckZAP(url string) bool {
 }
 
 func SendStartZap(host string) string {
-	initZap(host)
+	target := host
 	cfg := &zap.Config{
 		Proxy: "http://zaproxy:8090",
 	}
@@ -90,7 +82,14 @@ func SendStartZap(host string) string {
 }
 
 func StartScanZap(url string) {
-	AnalyzeZap(SendStartZap(url))
+	fmt.Println("Start Scan is completed")
+	SendStartScanResult := SendStartZap(url)
+	if SendStartScanResult != "" {
+		fmt.Println("Send Start ZAP is completed")
+		AnalyzeZap(SendStartScanResult)
+	} else {
+		return
+	}
 }
 
 func ImportReportZap(report string) {
@@ -98,6 +97,8 @@ func ImportReportZap(report string) {
 }
 
 func AnalyzeZap(report string) {
+	fmt.Println(report)
+
 	var db = core.InitDB()
 
 	result := gjson.Get(report, "site.0.alerts")
