@@ -90,7 +90,7 @@ func AnalyzeArachni(report string) {
 
 		var BugUrl = gjson.Get(name.String(), "page.dom.url").String()
 		entry := core.Entrypoint{
-			BugName: core.FindCWE(db, gjson.Get(name.String(), "name").String(),
+			BugName: core.FindNameByCWE(db, gjson.Get(name.String(), "name").String(),
 				gjson.Get(name.String(), "cwe").String()),
 			BugCWE:      gjson.Get(name.String(), "cwe").String(),
 			BugHostPort: core.UrlExtractHostPort(BugUrl),
@@ -107,6 +107,9 @@ func AnalyzeArachni(report string) {
 			SourceName:   gjson.Get(name.String(), "name").String(),
 			SourceNameID: entry.ID,
 		}
-		core.UpdateEntry(entry, source, db, BugUrl)
+
+		params := core.UrlExtractParametr(BugUrl)
+
+		core.UpdateEntry(entry, source, db, params)
 	}
 }

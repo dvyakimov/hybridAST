@@ -6,7 +6,6 @@ import (
 	"github.com/jinzhu/gorm"
 	"log"
 	"net/url"
-	"strings"
 )
 
 type Entrypoint struct {
@@ -43,7 +42,7 @@ type CweList struct {
 	Name  string
 }
 
-func FindCWE(db *gorm.DB, NameFromJson string, BugCWE string) string {
+func FindNameByCWE(db *gorm.DB, NameFromJson string, BugCWE string) string {
 	var CweResult []*CweList
 	db.Find(&CweResult, "cwe_id=?", BugCWE)
 	if len(CweResult) > 0 {
@@ -53,10 +52,11 @@ func FindCWE(db *gorm.DB, NameFromJson string, BugCWE string) string {
 	}
 }
 
-func UpdateEntry(entry Entrypoint, source SourceData, db *gorm.DB, BugUrl string) {
+func UpdateEntry(entry Entrypoint, source SourceData, db *gorm.DB, m url.Values) {
+
 	var entrypointTemp []*Entrypoint
 	db.Find(&entrypointTemp, "bug_cwe=? and bug_path=?", entry.BugCWE, entry.BugPath)
-	m := UrlExtractParametr(BugUrl)
+	//m := UrlExtractParametr(BugUrl)
 	var checkParam = false
 	var checkSource = false
 	var checkName = false
@@ -180,20 +180,4 @@ func UrlExtractHostPort(urlFull string) string {
 		log.Println(err)
 	}
 	return u.Host
-}
-
-func UrlExtractParametr(urlFull string) url.Values {
-	editedString := strings.Replace(urlFull, ";", "", -1)
-	u, err := url.Parse(editedString)
-	if err != nil {
-		log.Println(err)
-	}
-	var m url.Values
-	if u.RawQuery != "" {
-		m, err = url.ParseQuery(u.RawQuery)
-		if err != nil {
-			fmt.Println(err)
-		}
-	}
-	return m
 }

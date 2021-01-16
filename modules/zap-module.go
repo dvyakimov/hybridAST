@@ -109,7 +109,7 @@ func AnalyzeZap(report string) {
 
 			var BugUrl = gjson.Get(nameSecond.String(), "uri").String()
 			entry := core.Entrypoint{
-				BugName: core.FindCWE(db, gjson.Get(name.String(), "name").String(),
+				BugName: core.FindNameByCWE(db, gjson.Get(name.String(), "name").String(),
 					gjson.Get(name.String(), "cweid").String()),
 				BugCWE:      gjson.Get(name.String(), "cweid").String(),
 				BugHostPort: core.UrlExtractHostPort(BugUrl),
@@ -127,7 +127,10 @@ func AnalyzeZap(report string) {
 				SourceName:   gjson.Get(name.String(), "name").String(),
 				SourceNameID: entry.ID,
 			}
-			core.UpdateEntry(entry, source, db, BugUrl) //Убрать из аргументов BugURL
+
+			params := core.UrlExtractParametr(BugUrl)
+
+			core.UpdateEntry(entry, source, db, params) //Убрать из аргументов BugURL
 		}
 	}
 }

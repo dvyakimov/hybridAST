@@ -391,7 +391,7 @@ func StartAnalyzeBandit() {
 		var CweId = TestidToCWE(core.GetValue(name, "test_id"))
 
 		entry := core.Entrypoint{
-			BugName: core.FindCWE(db, gjson.Get(name.String(), "issue_text").String(), CweId),
+			BugName: core.FindNameByCWE(db, gjson.Get(name.String(), "issue_text").String(), CweId),
 			BugCWE:  CweId,
 		}
 
@@ -430,7 +430,7 @@ func StartAnalyzeBandit() {
 			CodeLine:     gjson.Get(name.String(), "line_number").String(),
 			CodeFile:     gjson.Get(name.String(), "filename").String(),
 		}
-		core.UpdateEntry(entry, source, db, BugUrl)
+		core.UpdateEntry(entry, source, db, nil)
 
 		fmt.Println(entry)
 		fmt.Println(source)

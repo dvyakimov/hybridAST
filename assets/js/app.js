@@ -68,8 +68,16 @@ function startscan(idApp) {
     if (document.getElementById("arachni").checked === true) {
         formData.append('arachni', arachni);
     }
+    if (document.getElementById("semgrep").checked === true) {
+        formData.append('semgrep', semgrep);
+    }
 
+    var file = document.getElementById("inputSourceFile").files[0];
     formData.append('idApp', idApp);
+
+    if (file) {
+        formData.append('file', file);
+    }
 
     post('/apps/startScan', formData)
         .then(onResponse)
@@ -77,5 +85,7 @@ function startscan(idApp) {
 
     document.getElementById("zaproxy").checked = false;
     document.getElementById("arachni").checked = false;
+    document.getElementById("semgrep").checked = false;
 
 }(document, axios);
+

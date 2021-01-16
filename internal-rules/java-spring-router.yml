@@ -1,0 +1,19 @@
+rules:
+  - id: path-finder
+    patterns:
+      - pattern-either:
+          - pattern: |
+              @WebServlet(value=$PATH)
+              public class $FUNC extends HttpServlet {
+                ...
+              }
+          - pattern: |
+              @WebServlet($PATH)
+              public class $FUNC extends HttpServlet {
+                ...
+              }
+    languages:
+      - java
+    message: |
+      $PATH, $FUNC
+    severity: INFO

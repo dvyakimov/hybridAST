@@ -22,6 +22,9 @@ EXPOSE 8080
 
 WORKDIR /app
 
+RUN apk add python3 py3-pip
+RUN python3 -m pip install semgrep
+
 COPY --from=build-env /app /app
 COPY --from=build-env /go/bin/main /go/bin/main
 

@@ -2,10 +2,14 @@ package core
 
 import (
 	"encoding/csv"
+	"fmt"
 	"github.com/jinzhu/gorm"
 	"github.com/tidwall/gjson"
 	"io/ioutil"
+	"log"
+	"net/url"
 	"os"
+	"strings"
 )
 
 func ImportReport(path string) string {
@@ -59,4 +63,20 @@ func ReadCsv(filename string) ([][]string, error) {
 		return [][]string{}, err
 	}
 	return lines, nil
+}
+
+func UrlExtractParametr(urlFull string) url.Values {
+	editedString := strings.Replace(urlFull, ";", "", -1)
+	u, err := url.Parse(editedString)
+	if err != nil {
+		log.Println(err)
+	}
+	var m url.Values
+	if u.RawQuery != "" {
+		m, err = url.ParseQuery(u.RawQuery)
+		if err != nil {
+			fmt.Println(err)
+		}
+	}
+	return m
 }
