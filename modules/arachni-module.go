@@ -72,15 +72,15 @@ func SendStartArachni(host string) string {
 	return respGetReport.String()
 }
 
-func StartScanArachni(url string) {
-	AnalyzeArachni(SendStartArachni(url))
+func StartScanArachni(url string, appId uint) {
+	AnalyzeArachni(SendStartArachni(url), appId)
 }
 
-func ImportReportArachni(report string) {
-	AnalyzeArachni(core.ImportReport(report))
+func ImportReportArachni(report string, appId uint) {
+	AnalyzeArachni(core.ImportReport(report), appId)
 }
 
-func AnalyzeArachni(report string) {
+func AnalyzeArachni(report string, appId uint) {
 
 	var db = core.InitDB()
 
@@ -94,6 +94,7 @@ func AnalyzeArachni(report string) {
 				gjson.Get(name.String(), "cwe").String()),
 			BugCWE:      gjson.Get(name.String(), "cwe").String(),
 			BugHostPort: core.UrlExtractHostPort(BugUrl),
+			AppId:       appId,
 		}
 		if core.UrlExtractPath(BugUrl) != "" {
 			entry.BugPath = core.UrlExtractPath(BugUrl)

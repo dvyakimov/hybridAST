@@ -7,12 +7,13 @@ import (
 	"os"
 )
 
-func AddAppToDb(db *gorm.DB, name string, url string, language string, framework string) {
+func AddAppToDb(db *gorm.DB, name string, url string, language string, framework string, contextroot string) {
 	app := AppList{
-		AppName:   name,
-		Language:  language,
-		Url:       url,
-		Framework: framework,
+		AppName:     name,
+		Language:    language,
+		Url:         url,
+		Framework:   framework,
+		ContextRoot: contextroot,
 	}
 	db.Create(&app)
 }
@@ -50,8 +51,9 @@ func AddApp(w http.ResponseWriter, r *http.Request) {
 	url := r.FormValue("url")
 	language := r.FormValue("language")
 	framework := r.FormValue("framework")
+	contextroot := r.FormValue("context-root")
 
-	AddAppToDb(db, name, url, language, framework)
+	AddAppToDb(db, name, url, language, framework, contextroot)
 
 	//files, err := Unzip("./filies/" + handle.Filename, "output-folder")
 	//if err != nil {

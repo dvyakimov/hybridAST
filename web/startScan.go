@@ -132,7 +132,7 @@ func StartScan(w http.ResponseWriter, r *http.Request) {
 	// Сделать проверку, что, если localhost или 127.0.0.1, то менять на host.docker.internal
 
 	if r.Form["semgrep"] != nil {
-		modules.SemgrepScan(filename)
+		modules.SemgrepScan(filename, apptemp.ID)
 		//fmt.Println(filename)
 
 		jsonResponse(w, http.StatusCreated, "Semgrep Scan is started")
@@ -141,7 +141,7 @@ func StartScan(w http.ResponseWriter, r *http.Request) {
 	if r.Form["zaproxy"] != nil {
 		if checkConnect(apptemp.Url) != false {
 			jsonResponse(w, http.StatusCreated, "OWASP ZAP is started")
-			modules.StartScanZap(apptemp.Url)
+			modules.StartScanZap(apptemp.Url, apptemp.ID)
 		} else {
 			jsonResponse(w, http.StatusBadRequest, "No connection with target")
 		}
@@ -149,7 +149,7 @@ func StartScan(w http.ResponseWriter, r *http.Request) {
 	if r.Form["arachni"] != nil {
 		if checkConnect(apptemp.Url) != false {
 			jsonResponse(w, http.StatusCreated, "Arachni Scan is started")
-			modules.StartScanArachni(apptemp.Url)
+			modules.StartScanArachni(apptemp.Url, apptemp.ID)
 		} else {
 			jsonResponse(w, http.StatusBadRequest, "No connection with target")
 		}

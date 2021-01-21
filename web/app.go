@@ -5,6 +5,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/jinzhu/gorm"
 	"html/template"
+	"hybridAST/core"
 	"net/http"
 	"os"
 	"strconv"
@@ -12,10 +13,12 @@ import (
 
 type AppList struct {
 	gorm.Model
-	AppName   string
-	Url       string
-	Language  string
-	Framework string
+	AppName     string
+	Url         string
+	Language    string
+	Framework   string
+	ContextRoot string
+	Entrypoint  []core.Entrypoint `gorm:"foreignkey:AppID"`
 }
 
 func getIdFromRequest(req *http.Request) int {
@@ -36,7 +39,7 @@ func AppHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		fmt.Println(err)
 	}
-	defer db.Close()
+	//defer db.Close()
 
 	var apptemp AppList
 	db.Find(&apptemp, "id=?", id)

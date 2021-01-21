@@ -17,6 +17,7 @@ type Entrypoint struct {
 	Is_correl   bool
 	Params      []Params     `gorm:"foreignkey:ParamsID"`
 	SourceData  []SourceData `gorm:"foreignkey:SourceNameID"`
+	AppId       uint
 }
 
 type Params struct {

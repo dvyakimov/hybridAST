@@ -1,14 +1,18 @@
 package modules
 
 import (
+	"encoding/xml"
 	"fmt"
 	"github.com/tidwall/gjson"
 	"github.com/zaproxy/zap-api-go/zap"
 	"hybridAST/core"
+	//"io"
 	"log"
 	"net/http"
 	"strconv"
+	//"strings"
 	"time"
+	//"github.com/antchfx/xmlquery"
 )
 
 func CheckZAP(url string) bool {
@@ -81,22 +85,102 @@ func SendStartZap(host string) string {
 	return string(RawReport)
 }
 
-func StartScanZap(url string) {
+func StartScanZap(url string, appId uint) {
 	fmt.Println("Start Scan is completed")
 	SendStartScanResult := SendStartZap(url)
 	if SendStartScanResult != "" {
 		fmt.Println("Send Start ZAP is completed")
-		AnalyzeZap(SendStartScanResult)
+		AnalyzeZapJson(SendStartScanResult, appId)
 	} else {
 		return
 	}
 }
 
-func ImportReportZap(report string) {
-	AnalyzeZap(core.ImportReport(report))
+func ImportReportZapJson(report string, appId uint) {
+	AnalyzeZapJson(core.ImportReport(report), appId)
 }
 
-func AnalyzeZap(report string) {
+func ImportReportZapXml(report string, appId uint) {
+	AnalyzeZapXml(core.ImportReport(report), appId)
+}
+
+// array of all Users in the file
+type OWASPReport struct {
+	XMLName xml.Name `xml:"OWASPZAPReport"`
+	Site    []Site   `xml:"site"`
+}
+
+type Site struct {
+	XMLName xml.Name `xml:"site"`
+	Alerts  []Alerts `xml:"alerts"`
+}
+
+type Alerts struct {
+	XMLName   xml.Name    `xml:"alerts"`
+	Alertitem []Alertitem `xml:"alertitem"`
+}
+type Alertitem struct {
+	XMLName    xml.Name `xml:"alertitem"`
+	Pluginid   string   `xml:"pluginid"`
+	Alert      string   `xml:"alert"`
+	Riskcode   string   `xml:"riskcode"`
+	Confidence string   `xml:"confidence"`
+	Riskdesc   string   `xml:"riskdesc"`
+	Desc       string   `xml:"desc"`
+	Uri        string   `xml:"uri"`
+	Param      string   `xml:"param"`
+	Attack     string   `xml:"attack"`
+	Otherinfo  string   `xml:"otherinfo"`
+	Solution   string   `xml:"solution"`
+	Evidence   string   `xml:"evidence"`
+	Reference  string   `xml:"reference"`
+	Cweid      string   `xml:"cweid"`
+}
+
+func AnalyzeZapXml(report string, appId uint) {
+	//fmt.Println(report)
+	var db = core.InitDB()
+	var structedReport OWASPReport
+
+	err := xml.Unmarshal([]byte(report), &structedReport)
+	if err != nil {
+		fmt.Printf("error: %v", err)
+		return
+	}
+
+	for _, name := range structedReport.Site[0].Alerts[0].Alertitem {
+
+		fmt.Printf("Value: %v\n", name.Alert)
+
+		entry := core.Entrypoint{
+			BugName:     core.FindNameByCWE(db, name.Alert, name.Cweid),
+			BugCWE:      name.Cweid,
+			BugHostPort: core.UrlExtractHostPort(name.Uri),
+			AppId:       appId,
+		}
+
+		if core.UrlExtractPath(name.Uri) != "" {
+			entry.BugPath = core.UrlExtractPath(name.Uri)
+		} else {
+			entry.BugPath = "/"
+		}
+
+		source := core.SourceData{
+			Source:       "OWASP ZAP",
+			Severity:     name.Riskcode,
+			SourceName:   name.Alert,
+			SourceNameID: entry.ID,
+		}
+
+		params := core.UrlExtractParametr(name.Uri)
+
+		core.UpdateEntry(entry, source, db, params) //Убрать из аргументов BugURL
+
+	}
+
+}
+
+func AnalyzeZapJson(report string, appId uint) {
 	fmt.Println(report)
 
 	var db = core.InitDB()
@@ -113,6 +197,7 @@ func AnalyzeZap(report string) {
 					gjson.Get(name.String(), "cweid").String()),
 				BugCWE:      gjson.Get(name.String(), "cweid").String(),
 				BugHostPort: core.UrlExtractHostPort(BugUrl),
+				AppId:       appId,
 			}
 
 			if core.UrlExtractPath(BugUrl) != "" {

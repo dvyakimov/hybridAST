@@ -18,10 +18,11 @@ type CweList struct {
 
 type AppList struct {
 	gorm.Model
-	AppName   string
-	Url       string
-	Language  string
-	Framework string
+	AppName     string
+	Url         string
+	Language    string
+	Framework   string
+	ContextRoot string
 }
 
 var db *sql.DB

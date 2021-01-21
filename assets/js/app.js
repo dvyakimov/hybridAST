@@ -13,7 +13,7 @@ function onResponse(response) {
     },3000);
 }
 
-function senddata() {
+function senddata(idApp) {
     var file = document.getElementById("inputFile").files[0];
     var tool = document.getElementById("ChooseToolReport").value
 
@@ -26,6 +26,7 @@ function senddata() {
         var formData = new FormData();
         formData.append('file', file);
         formData.append('tool', tool);
+        formData.append('idApp', idApp);
 
         post('/apps/uploadReport', formData)
             .then(onResponse)
@@ -38,13 +39,15 @@ function addapp() {
     var url = document.getElementById("url").value;
     var language = document.getElementById("language").value
     var framework = document.getElementById("framework").value
+    var contextroot = document.getElementById("context-root").value
 
-    uploadAppData(name, url, language, framework);
+    uploadAppData(name, url, language, framework,contextroot);
 
     name.reset();
     url.reset();
     language.reset();
     framework.reset();
+    contextroot.reset();
 
     function uploadAppData(name,url,language,framework) {
         var formData = new FormData();
@@ -52,6 +55,7 @@ function addapp() {
         formData.append('url', url);
         formData.append('language', language);
         formData.append('framework', framework);
+        formData.append('context-root', contextroot);
 
         post('/apps/addApp', formData)
             .then(onResponse)

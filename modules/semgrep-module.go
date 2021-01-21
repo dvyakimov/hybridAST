@@ -74,6 +74,7 @@ func SemgrepGetPath(filename string) map[string]PathSast {
 }
 
 func SemgrepGetBugResult() string {
+	//TODO: сделать возможность вставлять правила из формы и проверить соединение с Интернет
 	out, err := exec.Command("semgrep", "--config", "p/findsecbugs", "--json", "-o", "result-scan.json", "./output-folder").Output()
 
 	if err != nil {
@@ -83,7 +84,7 @@ func SemgrepGetBugResult() string {
 	return string(out)
 }
 
-func SemgrepScan(filename string) {
+func SemgrepScan(filename string, AppId uint) {
 
 	var db = core.InitDB()
 
@@ -118,6 +119,7 @@ func SemgrepScan(filename string) {
 		entry := core.Entrypoint{
 			BugName: core.FindNameByCWE(db, bugValue, GetSemgrepCWE(bugValue)),
 			BugCWE:  GetSemgrepCWE(bugValue),
+			AppId:   AppId,
 		}
 
 		if startline <= pathMap[fileValue].EndLine && startline >= pathMap[fileValue].StartLine {
