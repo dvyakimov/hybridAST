@@ -85,23 +85,23 @@ func SendStartZap(host string) string {
 	return string(RawReport)
 }
 
-func StartScanZap(url string, appId uint) {
+func StartScanZap(url string, appId uint, SeverityFlag bool) {
 	fmt.Println("Start Scan is completed")
 	SendStartScanResult := SendStartZap(url)
 	if SendStartScanResult != "" {
 		fmt.Println("Send Start ZAP is completed")
-		AnalyzeZapJson(SendStartScanResult, appId)
+		AnalyzeZapJson(SendStartScanResult, appId, SeverityFlag)
 	} else {
 		return
 	}
 }
 
-func ImportReportZapJson(report string, appId uint) {
-	AnalyzeZapJson(core.ImportReport(report), appId)
+func ImportReportZapJson(report string, appId uint, SeverityFlag bool) {
+	AnalyzeZapJson(core.ImportReport(report), appId, SeverityFlag)
 }
 
-func ImportReportZapXml(report string, appId uint) {
-	AnalyzeZapXml(core.ImportReport(report), appId)
+func ImportReportZapXml(report string, appId uint, SeverityFlag bool) {
+	AnalyzeZapXml(core.ImportReport(report), appId, SeverityFlag)
 }
 
 // array of all Users in the file
@@ -137,7 +137,7 @@ type Alertitem struct {
 	Cweid      string   `xml:"cweid"`
 }
 
-func AnalyzeZapXml(report string, appId uint) {
+func AnalyzeZapXml(report string, appId uint, SeverityFlag bool) {
 	//fmt.Println(report)
 	var db = core.InitDB()
 	var structedReport OWASPReport
@@ -149,6 +149,10 @@ func AnalyzeZapXml(report string, appId uint) {
 	}
 
 	for _, name := range structedReport.Site[0].Alerts[0].Alertitem {
+
+		if SeverityFlag == true && name.Riskcode != "3" {
+			continue
+		}
 
 		fmt.Printf("Value: %v\n", name.Alert)
 
@@ -180,7 +184,7 @@ func AnalyzeZapXml(report string, appId uint) {
 
 }
 
-func AnalyzeZapJson(report string, appId uint) {
+func AnalyzeZapJson(report string, appId uint, SeverityFlag bool) {
 	fmt.Println(report)
 
 	var db = core.InitDB()
@@ -190,6 +194,9 @@ func AnalyzeZapJson(report string, appId uint) {
 	for _, name := range result.Array() {
 		resultInstances := gjson.Get(name.String(), "instances")
 		for _, nameSecond := range resultInstances.Array() {
+			if SeverityFlag == true && gjson.Get(name.String(), "riskcode").String() != "3" {
+				continue
+			}
 
 			var BugUrl = gjson.Get(nameSecond.String(), "uri").String()
 			entry := core.Entrypoint{

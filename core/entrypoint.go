@@ -8,13 +8,23 @@ import (
 	"net/url"
 )
 
+type AppList struct {
+	gorm.Model
+	AppName     string
+	Url         string
+	Language    string
+	Framework   string
+	ContextRoot string
+	Entrypoint  []Entrypoint `gorm:"foreignkey:AppID"`
+}
+
 type Entrypoint struct {
 	gorm.Model
 	BugName     string
 	BugCWE      string
 	BugHostPort string
 	BugPath     string
-	Is_correl   bool
+	Is_correl   string
 	Params      []Params     `gorm:"foreignkey:ParamsID"`
 	SourceData  []SourceData `gorm:"foreignkey:SourceNameID"`
 	AppId       uint
@@ -117,8 +127,11 @@ func UpdateEntry(entry Entrypoint, source SourceData, db *gorm.DB, m url.Values)
 	}
 	if checkParam == true && checkSource == false {
 		fmt.Println("Correalted Item")
+
 		source.SourceNameID = ParamSaveId
 		db.Create(&source)
+		fmt.Println(source.SourceNameID)
+		db.Model(&entry).Where("id = ?", source.SourceNameID).Update("is_correl", "yes")
 		//db.Model(&entry).Update("is_correl","true")
 	}
 }

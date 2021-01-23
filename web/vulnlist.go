@@ -15,6 +15,7 @@ type Vuln struct {
 	Bug_cwe    string
 	Created_at time.Time
 	Bug_Path   string
+	Is_correl  bool
 }
 
 type VulnListPage struct {
@@ -46,6 +47,11 @@ func VulnlistHandler(w http.ResponseWriter, r *http.Request) {
 			VulnTemp.Bug_cwe = entrypointTemp[i].BugCWE
 			VulnTemp.Created_at = entrypointTemp[i].CreatedAt
 			VulnTemp.Bug_Path = entrypointTemp[i].BugPath
+			if entrypointTemp[i].Is_correl == "yes" {
+				VulnTemp.Is_correl = true
+			} else {
+				VulnTemp.Is_correl = false
+			}
 			Vulns = append(Vulns, VulnTemp)
 		}
 		data = VulnListPage{Vulns: Vulns, IsNotEmpty: true}

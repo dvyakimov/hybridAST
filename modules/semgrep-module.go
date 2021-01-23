@@ -2,12 +2,14 @@ package modules
 
 import (
 	"fmt"
+	"github.com/jinzhu/gorm"
 	"github.com/tidwall/gjson"
 	"hybridAST/core"
 	"log"
 	"os/exec"
 	"regexp"
 	"strconv"
+	"strings"
 )
 
 type PathSast struct {
@@ -73,6 +75,16 @@ func SemgrepGetPath(filename string) map[string]PathSast {
 	return pathMap
 }
 
+func GetContextRoot(db *gorm.DB, appid uint) string {
+
+	var apptemp core.AppList
+
+	db.Find(&apptemp, "id=?", appid)
+
+	return apptemp.ContextRoot
+
+}
+
 func SemgrepGetBugResult() string {
 	//TODO: сделать возможность вставлять правила из формы и проверить соединение с Интернет
 	out, err := exec.Command("semgrep", "--config", "p/findsecbugs", "--json", "-o", "result-scan.json", "./output-folder").Output()
@@ -84,7 +96,7 @@ func SemgrepGetBugResult() string {
 	return string(out)
 }
 
-func SemgrepScan(filename string, AppId uint) {
+func SemgrepScan(filename string, AppId uint, SeverityFlag bool) {
 
 	var db = core.InitDB()
 
@@ -94,11 +106,16 @@ func SemgrepScan(filename string, AppId uint) {
 
 	BugResult := SemgrepGetBugResult() //TODO: сделать возмоджность получения отчет через загрузку без запуска сканирования
 
+	ContextRootValue := GetContextRoot(db, AppId) // TODO: сделать поиск context-root через foreignkey таблицы
+
 	var VulnSastArray []VulnSast
 
 	resultVulnt := gjson.Get(BugResult, "results")
 
 	for _, name := range resultVulnt.Array() {
+		if SeverityFlag == true && gjson.Get(name.String(), "extra.severity").String() != "WARNING" {
+			continue
+		}
 		startline, err := strconv.Atoi(gjson.Get(name.String(), "start.line").String())
 		if err != nil {
 			log.Fatal(err)
@@ -123,7 +140,7 @@ func SemgrepScan(filename string, AppId uint) {
 		}
 
 		if startline <= pathMap[fileValue].EndLine && startline >= pathMap[fileValue].StartLine {
-			entry.BugPath = pathMap[fileValue].PathValue
+			entry.BugPath = "/" + ContextRootValue + strings.ReplaceAll(pathMap[fileValue].PathValue, "\"", ``)
 		} // TODO: else рекурсивно искать к какому хендлеру подходит эта функция
 
 		source := core.SourceData{
@@ -131,7 +148,7 @@ func SemgrepScan(filename string, AppId uint) {
 			Severity:     gjson.Get(name.String(), "extra.severity").String(),
 			SourceName:   core.FindNameByCWE(db, bugValue, GetSemgrepCWE(bugValue)),
 			SourceNameID: entry.ID,
-			CodeLine:     string(startline),
+			CodeLine:     strconv.Itoa(startline),
 			CodeFile:     gjson.Get(name.String(), "path").String(),
 		}
 

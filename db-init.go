@@ -16,15 +16,6 @@ type CweList struct {
 	Name  string
 }
 
-type AppList struct {
-	gorm.Model
-	AppName     string
-	Url         string
-	Language    string
-	Framework   string
-	ContextRoot string
-}
-
 var db *sql.DB
 
 func ConnectDB() {
@@ -78,7 +69,7 @@ func DBStart() {
 	}
 	defer dbGorm.Close()
 
-	dbGorm.AutoMigrate(&CweList{}, &AppList{})
+	dbGorm.AutoMigrate(&CweList{}, &core.AppList{})
 	//dbGorm.AutoMigrate(&AppList{})
 
 	lines, err := core.ReadCsv("cwe/2000.csv")

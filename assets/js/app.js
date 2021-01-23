@@ -17,6 +17,7 @@ function senddata(idApp) {
     var file = document.getElementById("inputFile").files[0];
     var tool = document.getElementById("ChooseToolReport").value
 
+
     if (!file) {
         return;
     }
@@ -27,6 +28,9 @@ function senddata(idApp) {
         formData.append('file', file);
         formData.append('tool', tool);
         formData.append('idApp', idApp);
+        if (document.getElementById("severityReport").checked === true) {
+            formData.append('severityReport', severityReport);
+        }
 
         post('/apps/uploadReport', formData)
             .then(onResponse)
@@ -74,6 +78,9 @@ function startscan(idApp) {
     }
     if (document.getElementById("semgrep").checked === true) {
         formData.append('semgrep', semgrep);
+    }
+    if (document.getElementById("severity").checked === true) {
+        formData.append('severity', severity);
     }
 
     var file = document.getElementById("inputSourceFile").files[0];

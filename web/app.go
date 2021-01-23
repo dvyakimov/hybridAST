@@ -11,16 +11,6 @@ import (
 	"strconv"
 )
 
-type AppList struct {
-	gorm.Model
-	AppName     string
-	Url         string
-	Language    string
-	Framework   string
-	ContextRoot string
-	Entrypoint  []core.Entrypoint `gorm:"foreignkey:AppID"`
-}
-
 func getIdFromRequest(req *http.Request) int {
 	vars := mux.Vars(req)
 	id, _ := strconv.Atoi(vars["id"])
@@ -41,7 +31,7 @@ func AppHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	//defer db.Close()
 
-	var apptemp AppList
+	var apptemp core.AppList
 	db.Find(&apptemp, "id=?", id)
 
 	switch r.Method {

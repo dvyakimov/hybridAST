@@ -3,13 +3,14 @@ package web
 import (
 	"fmt"
 	"github.com/jinzhu/gorm"
+	"hybridAST/core"
 	"net/http"
 	"os"
 )
 
 type AppPageData struct {
 	IsNotEmpty bool
-	Apps       []AppList
+	Apps       []core.AppList
 }
 
 func AppListHandler(w http.ResponseWriter, r *http.Request) {
@@ -24,13 +25,13 @@ func AppListHandler(w http.ResponseWriter, r *http.Request) {
 
 	var data AppPageData
 
-	var apptemp []*AppList
+	var apptemp []*core.AppList
 	db.Find(&apptemp)
 
 	if apptemp != nil {
-		var apps []AppList
+		var apps []core.AppList
 		for i := range apptemp {
-			var AppTemp AppList
+			var AppTemp core.AppList
 			AppTemp.ID = apptemp[i].ID
 			AppTemp.Language = apptemp[i].Language
 			AppTemp.Framework = apptemp[i].Framework

@@ -11,6 +11,7 @@
                 <thead>
                 <tr>
                     <th scope="col">#</th>
+                    <th scope="col">Check</th>
                     <th scope="col">Name</th>
                     <th scope="col">CWE</th>
                     <th scope="col">Created</th>
@@ -20,8 +21,9 @@
                 </thead>
                 <tbody>
                 {{range .Vulns}}
-                <tr onclick="$( document ).ready(toVuln({{.Id}}))">
+                <tr onclick="$( document ).ready(toVuln({{.Id}}))"  {{if .Is_correl}} class="text-danger" {{end}} >
                     <th scope="row">{{.Id}}</th>
+                    <td>{{if .Is_correl}}✓{{end}}</td>
                     <td>{{.Bug_name}}</td>
                     <td>{{.Bug_cwe}}</td>
                     <td>{{.Created_at}}</td>

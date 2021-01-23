@@ -3,7 +3,7 @@ package web
 import (
 	"archive/zip"
 	"fmt"
-	"github.com/jinzhu/gorm"
+	"hybridAST/core"
 	"hybridAST/modules"
 	"io"
 	"io/ioutil"
@@ -92,18 +92,21 @@ func StartScan(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	dbhost := os.Getenv("DB_HOST")
-	dbport := os.Getenv("DB_PORT")
+	//dbhost := os.Getenv("DB_HOST")
+	//dbport := os.Getenv("DB_PORT")
 
-	db, err := gorm.Open("mysql", "root:root@("+dbhost+":"+dbport+")/dbreport?charset=utf8&parseTime=True&loc=Local")
-	if err != nil {
-		fmt.Println(err)
-	}
-	defer db.Close()
+	var db = core.InitDB()
 
 	r.FormValue("semgrep")
 	r.FormValue("zaproxy")
 	r.FormValue("arachni")
+
+	r.FormValue("severity")
+	var SeverityFlag bool
+
+	if r.Form["severity"] != nil {
+		SeverityFlag = true
+	}
 
 	file, handle, err := r.FormFile("file")
 	if err != nil {
@@ -126,13 +129,13 @@ func StartScan(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var apptemp AppList
+	var apptemp core.AppList
 	db.Find(&apptemp, "id=?", r.Form["idApp"][0])
 
 	// Сделать проверку, что, если localhost или 127.0.0.1, то менять на host.docker.internal
 
 	if r.Form["semgrep"] != nil {
-		modules.SemgrepScan(filename, apptemp.ID)
+		modules.SemgrepScan(filename, apptemp.ID, SeverityFlag)
 		//fmt.Println(filename)
 
 		jsonResponse(w, http.StatusCreated, "Semgrep Scan is started")
@@ -141,7 +144,7 @@ func StartScan(w http.ResponseWriter, r *http.Request) {
 	if r.Form["zaproxy"] != nil {
 		if checkConnect(apptemp.Url) != false {
 			jsonResponse(w, http.StatusCreated, "OWASP ZAP is started")
-			modules.StartScanZap(apptemp.Url, apptemp.ID)
+			modules.StartScanZap(apptemp.Url, apptemp.ID, SeverityFlag)
 		} else {
 			jsonResponse(w, http.StatusBadRequest, "No connection with target")
 		}
@@ -149,7 +152,7 @@ func StartScan(w http.ResponseWriter, r *http.Request) {
 	if r.Form["arachni"] != nil {
 		if checkConnect(apptemp.Url) != false {
 			jsonResponse(w, http.StatusCreated, "Arachni Scan is started")
-			modules.StartScanArachni(apptemp.Url, apptemp.ID)
+			modules.StartScanArachni(apptemp.Url, apptemp.ID, SeverityFlag)
 		} else {
 			jsonResponse(w, http.StatusBadRequest, "No connection with target")
 		}

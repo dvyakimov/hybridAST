@@ -37,15 +37,18 @@
                     <label for="zaproxy"> OWASP ZAP</label><br>
                     <input type="checkbox" id="arachni" name="arachni" value="arachni">
                     <label for="arachni"> Arachni</label><br>
-
                 <h5>SAST tools:</h5>
                     <input type="checkbox" id="semgrep" name="semgrep" value="semgrep">
                     <label for="semgrep">Semgrep</label><br>
                     <div class="custom-file">
-                        <input type="file" class="custom-file-input" id="inputSourceFile" name="file">
+                        <input type="file" class="custom-file-input" id="inputSourceFile" name="file"> <br>
                         <label class="custom-file-label" for="inputSourceFile">Choose Source File</label>
                     </div>
+                <h5>Options:</h5>
+                    <input type="checkbox" id="severity" name="severity" value="severity">
+                    <label for="severity">Only high</label><br>
                 </div>
+
                 <!--<form enctype="multipart/form-data" id="my_form">-->
                 <div class="modal-footer">
                     <input type="button" value="scan" class="btn btn-primary" onclick="startscan({{.ID}})" data-dismiss="modal" />
@@ -76,9 +79,12 @@
                     <!--<form enctype="multipart/form-data" id="my_form">-->
                         <div class="form-group">
                             <div class="custom-file">
-                                <input type="file" class="custom-file-input" id="inputFile" name="file">
+                                <input type="file" class="custom-file-input" id="inputFile" name="file"><br>
                                 <label class="custom-file-label" for="inputFile">Choose file</label>
                             </div>
+                            <h5>Options:</h5>
+                            <input type="checkbox" id="severityReport" name="severity" value="severity">
+                            <label for="severityReport">Only high</label><br>
                         </div>
                         <div class="modal-footer">
                             <input type="button" value="upload" class="btn btn-primary" onclick="senddata({{.ID}})" data-dismiss="modal" />

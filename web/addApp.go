@@ -3,12 +3,13 @@ package web
 import (
 	"fmt"
 	"github.com/jinzhu/gorm"
+	"hybridAST/core"
 	"net/http"
 	"os"
 )
 
 func AddAppToDb(db *gorm.DB, name string, url string, language string, framework string, contextroot string) {
-	app := AppList{
+	app := core.AppList{
 		AppName:     name,
 		Language:    language,
 		Url:         url,

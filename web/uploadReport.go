@@ -2,12 +2,11 @@ package web
 
 import (
 	"fmt"
-	"github.com/jinzhu/gorm"
+	"hybridAST/core"
 	"hybridAST/modules"
 	"io/ioutil"
 	"mime/multipart"
 	"net/http"
-	"os"
 )
 
 func UploadFile(w http.ResponseWriter, r *http.Request) {
@@ -16,13 +15,10 @@ func UploadFile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	dbhost := os.Getenv("DB_HOST")
-	dbport := os.Getenv("DB_PORT")
+	//dbhost := os.Getenv("DB_HOST")
+	//dbport := os.Getenv("DB_PORT")
 
-	db, err := gorm.Open("mysql", "root:root@("+dbhost+":"+dbport+")/dbreport?charset=utf8&parseTime=True&loc=Local")
-	if err != nil {
-		fmt.Println(err)
-	}
+	var db = core.InitDB()
 
 	file, handle, err := r.FormFile("file")
 	if err != nil {
@@ -34,9 +30,16 @@ func UploadFile(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 	tool := r.Form["tool"]
 
+	r.FormValue("severity")
+	var SeverityFlag bool
+
+	if r.Form["severityReport"] != nil {
+		SeverityFlag = true
+	}
+
 	fmt.Println(r.Form["idApp"][0])
 
-	var apptemp AppList
+	var apptemp core.AppList
 	db.Find(&apptemp, "id=?", r.Form["idApp"][0])
 
 	var filename string
@@ -47,7 +50,7 @@ func UploadFile(w http.ResponseWriter, r *http.Request) {
 		filename = saveFileXml(w, file)
 		if tool[0] == "OWASP ZAP" {
 			//TODO: Сделать проверку на report
-			modules.ImportReportZapXml(filename, apptemp.ID)
+			modules.ImportReportZapXml(filename, apptemp.ID, SeverityFlag)
 			jsonResponse(w, http.StatusCreated, "Analysing by OWASP ZAP is started")
 		} else {
 			jsonResponse(w, http.StatusBadRequest, "There is no tool")
@@ -56,10 +59,10 @@ func UploadFile(w http.ResponseWriter, r *http.Request) {
 	case "application/json": //to edit
 		filename = saveFileJson(w, file)
 		if tool[0] == "OWASP ZAP" {
-			modules.ImportReportZapJson(filename, apptemp.ID)
+			modules.ImportReportZapJson(filename, apptemp.ID, SeverityFlag)
 			jsonResponse(w, http.StatusCreated, "Analysing by OWASP ZAP is started")
 		} else if tool[0] == "Arachni" {
-			modules.ImportReportArachni(filename, apptemp.ID)
+			modules.ImportReportArachni(filename, apptemp.ID, SeverityFlag)
 			jsonResponse(w, http.StatusCreated, "Analysing by Arachni is started")
 		} else {
 			jsonResponse(w, http.StatusBadRequest, "There is no tool")

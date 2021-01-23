@@ -72,21 +72,24 @@ func SendStartArachni(host string) string {
 	return respGetReport.String()
 }
 
-func StartScanArachni(url string, appId uint) {
-	AnalyzeArachni(SendStartArachni(url), appId)
+func StartScanArachni(url string, appId uint, SeverityFlag bool) {
+	AnalyzeArachni(SendStartArachni(url), appId, SeverityFlag)
 }
 
-func ImportReportArachni(report string, appId uint) {
-	AnalyzeArachni(core.ImportReport(report), appId)
+func ImportReportArachni(report string, appId uint, SeverityFlag bool) {
+	AnalyzeArachni(core.ImportReport(report), appId, SeverityFlag)
 }
 
-func AnalyzeArachni(report string, appId uint) {
+func AnalyzeArachni(report string, appId uint, SeverityFlag bool) {
 
 	var db = core.InitDB()
 
 	result := gjson.Get(report, "issues")
 
 	for _, name := range result.Array() {
+		if SeverityFlag == true && gjson.Get(name.String(), "severity").String() != "high" {
+			continue
+		}
 
 		var BugUrl = gjson.Get(name.String(), "page.dom.url").String()
 		entry := core.Entrypoint{
